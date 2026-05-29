@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Photo Upload{% endblock %}
+
+{% block progress %}
+<div class="step-progress">
+    <div class="step active">
+        <span class="step-number">1</span>
+        <span class="step-label">Photo</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+        <span class="step-number">2</span>
+        <span class="step-label">Symptoms</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+        <span class="step-number">3</span>
+        <span class="step-label">Result</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Upload Your Photo</h2>
+    <p>Take a frontal face photo with good, even lighting and your nose clearly visible.</p>
+
+    <div class="photo-guidelines">
+        <div class="guideline">
+            <div class="guideline-icon">&#128566;</div>
+            <span>Face camera directly</span>
+        </div>
+        <div class="guideline">
+            <div class="guideline-icon">&#128161;</div>
+            <span>Even lighting</span>
+        </div>
+        <div class="guideline">
+            <div class="guideline-icon">&#128247;</div>
+            <span>Keep still</span>
+        </div>
+    </div>
+
+    <form id="upload-form" enctype="multipart/form-data">
+        <div class="drop-zone" id="drop-zone">
+            <svg class="drop-zone-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round">
+                <path d="M12 16V4m0 0l-4 4m4-4l4 4"/>
+                <path d="M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/>
+            </svg>
+            <p>Drag &amp; drop your photo here</p>
+            <span class="hint">or tap to choose a file</span>
+            <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/jpg" capture="user">
+        </div>
+    </form>
+
+    <div class="photo-preview" id="preview"></div>
+    <div class="error-message" id="error"></div>
+
+    <div class="analysis-result" id="analysis-result">
+        <div class="analysis-score" id="result-score"></div>
+        <div class="analysis-classification" id="result-classification"></div>
+    </div>
+
+    <div id="angle-warning" class="angle-warning" style="display:none;"></div>
+
+    <button type="button" class="btn primary full-width" id="analyze-btn" style="display:none;">
+        Analyze Photo
+    </button>
+
+    <div id="next-step" style="display:none; margin-top: var(--space-md);">
+        <a href="#" id="questionnaire-link" class="btn primary full-width">
+            Continue to Symptom Questionnaire
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var photoInput = document.getElementById('photo');
+    var dropZone = document.getElementById('drop-zone');
+    var analyzeBtn = document.getElementById('analyze-btn');
+    var preview = document.getElementById('preview');
+    var errorDiv = document.getElementById('error');
+    var analysisResult = document.getElementById('analysis-result');
+    var resultScore = document.getElementById('result-score');
+    var resultClassification = document.getElementById('result-classification');
+    var nextStep = document.getElementById('next-step');
+    var questionnaireLink = document.getElementById('questionnaire-link');
+    var angleWarning = document.getElementById('angle-warning');
+    var loadingOverlay = document.getElementById('loading-overlay');
+
+    var selectedFile = null;
+
+    function showError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.classList.add('visible');
+    }
+    function hideError() {
+        errorDiv.textContent = '';
+        errorDiv.classList.remove('visible');
+    }
+    function showPreview(file) {
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        preview.innerHTML = '';
+        preview.appendChild(img);
+        preview.classList.add('visible');
+    }
+    function handleFile(file) {
+        if (!file) return;
+        if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+            showError('Please select a JPG or PNG image.');
+            return;
+        }
+        if (file.size > 16 * 1024 * 1024) {
+            showError('Image must be under 16 MB.');
+            return;
+        }
+        selectedFile = file;
+        hideError();
+        showPreview(file);
+        analyzeBtn.style.display = 'block';
+        analysisResult.classList.remove('visible');
+        analysisResult.className = 'analysis-result';
+        nextStep.style.display = 'none';
+        angleWarning.style.display = 'none';
+    }
+
+    photoInput.addEventListener('change', function() {
+        if (this.files.length) handleFile(this.files[0]);
+    });
+
+    ['dragenter', 'dragover'].forEach(function(evt) {
+        dropZone.addEventListener(evt, function(e) {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+    });
+    ['dragleave', 'drop'].forEach(function(evt) {
+        dropZone.addEventListener(evt, function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+    });
+    dropZone.addEventListener('drop', function(e) {
+        var file = e.dataTransfer.files[0];
+        if (file) {
+            var dt = new DataTransfer();
+            dt.items.add(file);
+            photoInput.files = dt.files;
+            handleFile(file);
+        }
+    });
+
+    analyzeBtn.addEventListener('click', async function() {
+        if (!selectedFile) return;
+        analyzeBtn.disabled = true;
+        hideError();
+        loadingOverlay.querySelector('.loading-text').textContent = 'Analyzing your photo...';
+        loadingOverlay.classList.add('visible');
+        analysisResult.classList.remove('visible');
+        analysisResult.className = 'analysis-result';
+
+        var formData = new FormData();
+        formData.append('photo', selectedFile);
+
+        try {
+            var res = await fetch('/upload', { method: 'POST', body: formData });
+            var data = await res.json().catch(function() { return {}; });
+            if (!res.ok) throw new Error(data.error || 'Analysis failed. Please try again.');
+
+            var score = data.deviation_score;
+            var cls = data.classification;
+
+            resultScore.textContent = score.toFixed(1);
+            resultClassification.textContent = cls.charAt(0).toUpperCase() + cls.slice(1);
+            analysisResult.className = 'analysis-result visible severity-' + cls;
+
+            if (data.warning) {
+                angleWarning.textContent = data.warning;
+                angleWarning.style.display = 'block';
+            }
+
+            questionnaireLink.href = '/questionnaire?visual_score=' + score + '&classification=' + cls;
+            nextStep.style.display = 'block';
+            analyzeBtn.style.display = 'none';
+        } catch (err) {
+            showError(err.message);
+        }
+        loadingOverlay.classList.remove('visible');
+        analyzeBtn.disabled = false;
+    });
+})();
+</script>
+{% endblock %}

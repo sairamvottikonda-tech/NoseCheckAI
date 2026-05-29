@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Result{% endblock %}
+
+{% block progress %}
+<div class="step-progress">
+    <div class="step completed">
+        <span class="step-number">&#10003;</span>
+        <span class="step-label">Photo</span>
+    </div>
+    <div class="step-line completed"></div>
+    <div class="step completed">
+        <span class="step-number">&#10003;</span>
+        <span class="step-label">Symptoms</span>
+    </div>
+    <div class="step-line completed"></div>
+    <div class="step active">
+        <span class="step-number">3</span>
+        <span class="step-label">Result</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="result-hero">
+        <div class="gauge-container severity-{{ classification }}">
+            <svg class="gauge-svg" viewBox="0 0 120 120">
+                <circle class="gauge-bg" cx="60" cy="60" r="52"/>
+                <circle class="gauge-fill severity-{{ classification }}" cx="60" cy="60" r="52"
+                    stroke-dasharray="326.7"
+                    stroke-dashoffset="326.7"
+                    id="gauge-arc"/>
+            </svg>
+            <div class="gauge-text">
+                <span class="gauge-score" id="gauge-number">0</span>
+                <span class="gauge-label">out of 100</span>
+            </div>
+        </div>
+
+        <div class="classification-badge severity-{{ classification }}">
+            {{ classification }}
+        </div>
+    </div>
+
+    {% if visual_score is not none and symptom_score is not none %}
+    <div class="score-breakdown">
+        <div class="breakdown-item">
+            <div class="breakdown-value">{{ "%.1f"|format(visual_score) }}</div>
+            <div class="breakdown-label">Visual Score</div>
+        </div>
+        <div class="breakdown-item">
+            <div class="breakdown-value">{{ "%.1f"|format(symptom_score) }}</div>
+            <div class="breakdown-label">Symptom Score</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="recommendation severity-{{ classification }}">
+        {% if classification == 'normal' %}
+        <h3>No Significant Asymmetry Detected</h3>
+        <p>Your screening suggests no notable nasal asymmetry. If you occasionally experience mild symptoms, they may be due to other causes like allergies. Monitor your symptoms and consult an ENT if they persist.</p>
+        {% elif classification == 'mild' %}
+        <h3>Mild Asymmetry Detected</h3>
+        <p>Your result indicates mild nasal asymmetry. If you experience symptoms like occasional congestion or mouth breathing, consider visiting an ear, nose, and throat (ENT) specialist for a clinical evaluation.</p>
+        {% elif classification == 'moderate' %}
+        <h3>Moderate Asymmetry Detected</h3>
+        <p>Your result indicates moderate asymmetry. We recommend consulting an ENT specialist, especially if you experience breathing difficulties, sleep issues, or frequent congestion.</p>
+        {% else %}
+        <h3>Notable Asymmetry Detected</h3>
+        <p>Your result suggests notable nasal asymmetry. We strongly recommend visiting an ENT specialist for a thorough evaluation. A deviated septum can significantly affect breathing, sleep quality, and daily comfort.</p>
+        {% endif %}
+    </div>
+
+    <div class="disclaimer">
+        This is a screening tool for research and educational purposes only. It is not a clinical diagnosis. Always consult qualified healthcare professionals for medical advice.
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn primary full-width">Start Over</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var score = {{ score }};
+    var arc = document.getElementById('gauge-arc');
+    var num = document.getElementById('gauge-number');
+    var circumference = 326.7;
+    var target = circumference - (score / 100 * circumference);
+
+    // Animate gauge fill after short delay
+    setTimeout(function() {
+        arc.style.strokeDashoffset = target;
+    }, 200);
+
+    // Count-up animation for number
+    var current = 0;
+    var step = Math.max(0.1, score / 40);
+    var interval = setInterval(function() {
+        current += step;
+        if (current >= score) {
+            current = score;
+            clearInterval(interval);
+        }
+        num.textContent = current.toFixed(1);
+    }, 25);
+})();
+</script>
+{% endblock %}

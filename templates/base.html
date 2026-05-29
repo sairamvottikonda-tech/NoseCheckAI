@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="NoseCheck - Smartphone-based screening for nasal asymmetry and deviated septum">
+    <title>{% block title %}NoseCheck{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-brand">
+            <svg class="header-icon" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4"/>
+                <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <h1>NoseCheck</h1>
+        </div>
+        <p class="header-subtitle">Nasal Asymmetry Screening Tool</p>
+    </header>
+
+    {% block progress %}{% endblock %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>For research and educational purposes only. Not a clinical diagnosis.</p>
+    </footer>
+
+    <!-- Global loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Analyzing...</div>
+        <div class="loading-subtext">This may take a few seconds</div>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

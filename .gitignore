@@ -1,0 +1,55 @@
+# Exclude EVERYTHING by default
+*
+
+# Then specifically include only what we need for deployment
+!.gitignore
+!.renderignore
+!render.yaml
+!requirements-production.txt
+!run_server.py
+!wsgi.py
+!runtime.txt
+!DEPLOYMENT_GUIDE.md
+!README.md
+!pyproject.toml
+
+# Include source code folders (recursive)
+!src/
+!src/**/
+!src/**/*.py
+
+# Include templates and static
+!templates/
+!templates/**/*.html
+!templates/**/*.css
+!templates/**/*.js
+!static/
+!static/**/*.css
+!static/**/*.js
+
+# Include config
+!config.py
+
+# Include scripts (calibration, validation)
+!scripts/
+!scripts/**/*.py
+
+# Create empty data directories on server
+!data/
+!data/images/
+!data/images/.gitkeep
+!data/results/
+!data/results/.gitkeep
+!data/calibration_models/
+!data/calibration_models/.gitkeep
+!data/calibration_models/metadata.csv
+
+# CT validation data
+!data/ct_validation/
+!data/ct_validation/.gitkeep
+!data/ct_validation/ct_ground_truth.csv
+!data/ct_validation/README_DATA.md
+
+# Documentation
+!docs/
+!docs/**/*.md

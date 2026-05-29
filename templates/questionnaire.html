@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Symptom Questionnaire{% endblock %}
+
+{% block progress %}
+<div class="step-progress">
+    <div class="step completed">
+        <span class="step-number">&#10003;</span>
+        <span class="step-label">Photo</span>
+    </div>
+    <div class="step-line completed"></div>
+    <div class="step active">
+        <span class="step-number">2</span>
+        <span class="step-label">Symptoms</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+        <span class="step-number">3</span>
+        <span class="step-label">Result</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="text-align: center;">Symptom Assessment</h2>
+    <p style="text-align: center;">Rate how much each symptom affects you.</p>
+
+    <div class="question-progress">
+        <div class="question-progress-bar" id="progress-bar" style="width: {{ (1 / questions|length * 100)|round(1) }}%;"></div>
+    </div>
+    <div class="question-counter" id="question-counter">Question 1 of {{ questions|length }}</div>
+
+    <form id="quiz-form">
+        <input type="hidden" name="visual_score" id="visual_score" value="{{ request.args.get('visual_score', 0) }}">
+        {% for q in questions %}
+        <div class="question-card{% if loop.index0 == 0 %} active{% endif %}" data-index="{{ loop.index0 }}">
+            <h3>{{ q.text }}</h3>
+            <div class="rating-buttons">
+                <button type="button" class="rating-btn" data-question="{{ q.id }}" data-value="0">
+                    None
+                </button>
+                <button type="button" class="rating-btn" data-question="{{ q.id }}" data-value="1">
+                    Mild
+                </button>
+                <button type="button" class="rating-btn" data-question="{{ q.id }}" data-value="2">
+                    Moderate
+                </button>
+                <button type="button" class="rating-btn" data-question="{{ q.id }}" data-value="3">
+                    Severe
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+
+    <div class="question-nav">
+        <button type="button" class="btn secondary" id="prev-btn" disabled>Back</button>
+        <button type="button" class="btn primary" id="next-btn">Next</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var totalQuestions = {{ questions|length }};
+    var cards = document.querySelectorAll('.question-card');
+    var prevBtn = document.getElementById('prev-btn');
+    var nextBtn = document.getElementById('next-btn');
+    var progressBar = document.getElementById('progress-bar');
+    var counter = document.getElementById('question-counter');
+    var visualScore = document.getElementById('visual_score');
+    var loadingOverlay = document.getElementById('loading-overlay');
+
+    var urlParams = new URLSearchParams(window.location.search);
+    visualScore.value = urlParams.get('visual_score') || 0;
+
+    var current = 0;
+    var answers = {};
+
+    function showCard(idx) {
+        cards.forEach(function(c) { c.classList.remove('active'); });
+        cards[idx].classList.add('active');
+        progressBar.style.width = ((idx + 1) / totalQuestions * 100) + '%';
+        counter.textContent = 'Question ' + (idx + 1) + ' of ' + totalQuestions;
+        prevBtn.disabled = idx === 0;
+        nextBtn.textContent = idx === totalQuestions - 1 ? 'Get Result' : 'Next';
+    }
+
+    document.querySelectorAll('.rating-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var qId = this.getAttribute('data-question');
+            var val = parseInt(this.getAttribute('data-value'));
+            answers['symptom_' + qId] = val;
+            this.parentElement.querySelectorAll('.rating-btn').forEach(function(b) {
+                b.classList.remove('selected');
+            });
+            this.classList.add('selected');
+        });
+    });
+
+    prevBtn.addEventListener('click', function() {
+        if (current > 0) { current--; showCard(current); }
+    });
+
+    nextBtn.addEventListener('click', async function() {
+        if (current < totalQuestions - 1) {
+            current++;
+            showCard(current);
+        } else {
+            nextBtn.disabled = true;
+            loadingOverlay.querySelector('.loading-text').textContent = 'Calculating your result...';
+            loadingOverlay.classList.add('visible');
+
+            var payload = Object.assign({}, answers, {
+                visual_score: visualScore.value
+            });
+
+            try {
+                var res = await fetch('/questionnaire', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                var result = await res.json();
+                var params = new URLSearchParams({
+                    score: result.combined_score,
+                    classification: result.classification || 'normal',
+                    visual_score: result.visual_score || 0,
+                    symptom_score: result.symptom_score || 0
+                });
+                window.location.href = '/result?' + params.toString();
+            } catch (err) {
+                loadingOverlay.classList.remove('visible');
+                nextBtn.disabled = false;
+                alert('Error submitting questionnaire. Please try again.');
+            }
+        }
+    });
+
+    showCard(0);
+})();
+</script>
+{% endblock %}

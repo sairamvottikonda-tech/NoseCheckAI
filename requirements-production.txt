@@ -1,0 +1,19 @@
+# NoseCheck - Production Dependencies (minimal for 512MB free tier)
+
+# Core Image Processing and Computer Vision
+opencv-python-headless>=4.8.0
+mediapipe>=0.10.0
+pillow>=10.0.0
+
+# Numerical (numpy required by OpenCV/MediaPipe)
+numpy>=1.24.0
+
+# Web Framework
+flask>=2.3.0
+gunicorn>=21.2.0
+
+# Utilities
+python-dotenv>=1.0.0
+
+# Excluded for memory: pandas, scipy, matplotlib, seaborn, scikit-learn
+# (used only in calibration scripts, not web pipeline)

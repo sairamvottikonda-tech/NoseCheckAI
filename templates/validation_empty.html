@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Validation Report{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="text-align: center; margin-bottom: var(--space-md);">CT Validation Report</h2>
+    <p style="text-align: center; color: var(--text-light); margin-bottom: var(--space-lg);">
+        No validation report has been generated yet.
+    </p>
+    <div style="background: var(--bg-light); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md);">
+        <h4 style="margin-bottom: var(--space-sm);">How to generate a report:</h4>
+        <ol style="padding-left: var(--space-md); line-height: 2;">
+            <li>Download CT scans from TCIA or NasalSeg dataset</li>
+            <li>Measure septal deviation in 3D Slicer (mm from midline)</li>
+            <li>Render frontal face views from CT volumes</li>
+            <li>Record measurements in <code>data/ct_validation/ct_ground_truth.csv</code></li>
+            <li>Run: <code>python scripts/validate_ct_correlation.py</code></li>
+        </ol>
+    </div>
+    <p style="text-align: center;">
+        <a href="{{ url_for('index') }}" class="btn primary">Back to Home</a>
+    </p>
+</div>
+{% endblock %}

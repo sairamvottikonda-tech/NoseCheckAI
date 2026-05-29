@@ -1,0 +1,9 @@
+filename,known_deviation_mm,model_type,septum_shape,expected_classification,expected_score_min,expected_score_max,data_source,notes
+straight_model.png,0,3d_model,straight,normal,0,15,,3D printed straight septum - no deviation
+c_curve_model.png,4,3d_model,c_curve,mild,30,50,,3D printed C-curve septum
+s_curve_model.png,8,3d_model,s_curve,severe,55,80,,3D printed S-curve septum
+first-before.png,8,clinical,unknown,severe,55,85,,Clinical before-surgery photo
+image.png,5,clinical,unknown,moderate,35,60,,Clinical photo
+image-23.png,6,clinical,unknown,moderate,40,65,,Clinical photo
+image-after.png,2,clinical,unknown,normal,0,25,,Clinical after-surgery photo
+image_old.png,4,clinical,unknown,mild,25,50,,Clinical before-surgery photo

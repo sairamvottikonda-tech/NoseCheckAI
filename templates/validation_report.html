@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoseCheck CT Validation Report</title>
+<style>
+:root {
+    --color-normal: #4CAF50;
+    --color-mild: #4CAF50;
+    --color-moderate: #FF9800;
+    --color-severe: #F44336;
+    --bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #222;
+    --text-light: #666;
+    --border: #dee2e6;
+    --primary: #1565C0;
+    --primary-light: #1976D2;
+    --badge-good: #4CAF50;
+    --badge-ok: #FF9800;
+    --badge-poor: #F44336;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+    color: var(--primary);
+}
+.meta {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+h2 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    color: #333;
+}
+.section { margin-bottom: 32px; }
+
+.warn {
+    background: #FFF8E1;
+    border-left: 4px solid #FFC107;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.card .label {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+}
+.card .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.card .sub {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 4px;
+}
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+.badge-good { background: var(--badge-good); }
+.badge-ok   { background: var(--badge-ok); }
+.badge-poor { background: var(--badge-poor); }
+
+.linear-fit {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.05em;
+    text-align: center;
+    margin: 12px 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.plots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+.plots img {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    font-size: 0.88rem;
+    margin: 16px 0;
+}
+th {
+    background: var(--primary);
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+}
+td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #eee;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f0f4ff; }
+tr.match td { background: #e8f5e9; }
+tr.mismatch td { background: #ffebee; }
+tr.skip td { background: #f5f5f5; color: #999; }
+tr.ct-only td { background: #f5f5f5; }
+
+.note {
+    background: #fff3e0;
+    border-left: 4px solid var(--color-moderate);
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.92em;
+}
+.citation {
+    font-size: 0.85em;
+    color: #555;
+    margin: 6px 0;
+    padding-left: 16px;
+    border-left: 3px solid var(--border);
+}
+.thresholds {
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 32px;
+}
+footer {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.8em;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+</style>
+</head>
+<body>
+
+<h1>NoseCheck &ndash; CT Validation Report</h1>
+<p class="meta">Generated: {{timestamp}} &nbsp;|&nbsp;
+  Total CT records: {{n_ct_total}} &nbsp;|&nbsp;
+  Paired (CT + photo): {{n_paired}}</p>
+
+{{simulated_warning}}
+
+<div class="section">
+<h2>Performance Metrics</h2>
+<div class="grid">
+  <div class="card">
+    <div class="label">Pearson r</div>
+    <div class="value">{{pearson_r}} {{pearson_r_badge}}</div>
+    <div class="sub">p = {{p_value}}</div>
+  </div>
+  <div class="card">
+    <div class="label">R&sup2;</div>
+    <div class="value">{{r_squared}} {{r_squared_badge}}</div>
+    <div class="sub">Explained variance</div>
+  </div>
+  <div class="card">
+    <div class="label">RMSE</div>
+    <div class="value">{{rmse}} {{rmse_badge}}</div>
+    <div class="sub">Score units</div>
+  </div>
+  <div class="card">
+    <div class="label">Category Accuracy</div>
+    <div class="value">{{overall_accuracy_pct}} {{accuracy_badge}}</div>
+    <div class="sub">{{overall_accuracy_detail}}</div>
+  </div>
+</div>
+
+<div class="linear-fit">
+    Linear fit: <strong>score = {{slope}} &times; deviation_mm + {{intercept}}</strong>
+</div>
+</div>
+
+<div class="section">
+<h2>Plots</h2>
+<div class="plots">
+  {{scatter_plot}}
+  {{boxplot}}
+  {{distribution_chart}}
+</div>
+</div>
+
+<div class="section">
+<h2>Per-Category Accuracy</h2>
+<table>
+    <tr><th>Category</th><th>Correct / Total</th><th>Accuracy</th></tr>
+    {{category_rows}}
+</table>
+</div>
+
+<div class="section">
+<h2>Patient Data</h2>
+<table>
+    <tr>
+      <th>Patient ID</th><th>CT Source</th><th>Deviation (mm)</th>
+      <th>CT Severity</th><th>NoseCheck Score</th><th>NC Severity</th><th>Match</th><th>Notes</th>
+    </tr>
+    {{patient_rows}}
+</table>
+</div>
+
+<div class="section">
+<h2>Methodology</h2>
+<div class="note">
+    <strong>Measurement Protocol:</strong> Septal deviation measured in 3D Slicer on axial CT slices.
+    Midline reference drawn from anterior nasal spine to crista galli. Maximum horizontal
+    displacement of the septum from this midline recorded in millimeters.<br><br>
+    <strong>Photo Pairing:</strong> Frontal face views rendered from CT volumes using
+    3D Slicer's Volume Rendering module with CT-Skin preset. These renderings show external
+    facial structure derived from the same CT data, enabling paired comparison of internal
+    deviation vs external asymmetry measured by NoseCheck.
+</div>
+</div>
+
+<div class="section">
+<h2>Data Sources</h2>
+<p class="citation">TCIA Head-Neck Cetuximab: Bosch, W. R., et al. (2015). The Cancer Imaging Archive. <a href="https://doi.org/10.7937/K9/TCIA.2015.7AKGJUPZ">doi:10.7937/K9/TCIA.2015.7AKGJUPZ</a></p>
+<p class="citation">NasalSeg: Zhang, Y., et al. (2024). Scientific Data. <a href="https://github.com/YichiZhang98/NasalSeg">github.com/YichiZhang98/NasalSeg</a></p>
+<p class="citation">Mendeley Right Nasal Cavity: <a href="https://doi.org/10.17632/73dzjb538x.1">doi:10.17632/73dzjb538x.1</a></p>
+</div>
+
+<div class="section">
+<h2>Ethics</h2>
+<div class="note">
+    All CT data used are de-identified and publicly available through established research
+    repositories (TCIA, Zenodo, Mendeley Data). No Institutional Review Board (IRB) approval
+    is required for analysis of publicly available, de-identified data.
+</div>
+</div>
+
+<div class="thresholds">
+  <strong>Thresholds:</strong> Pearson r: Good &ge;0.8, Acceptable 0.6&ndash;0.8 &nbsp;|&nbsp;
+  R&sup2;: Good &ge;0.6, Acceptable 0.4&ndash;0.6 &nbsp;|&nbsp;
+  RMSE: Good &lt;10, Acceptable 10&ndash;20 &nbsp;|&nbsp;
+  Category Accuracy: Good &ge;80%, Acceptable 60&ndash;80%<br>
+  <strong>Severity:</strong> Mild 0&ndash;2mm, Moderate 2&ndash;5mm, Severe 5+mm
+</div>
+
+<footer>
+    NoseCheck &mdash; Smartphone-based nasal asymmetry screening tool
+</footer>
+
+</body>
+</html>

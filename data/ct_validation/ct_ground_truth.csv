@@ -1,0 +1,4 @@
+patient_id,ct_source,max_deviation_mm,deviation_angle_deg,septum_shape,severity_ct,photo_filename,measurement_method,slice_number,notes
+P1_example,TCIA-HN-Cetuximab,2.1,,c_curve,mild,p1_frontal.png,midline_to_max_displacement,142,Example - replace with real measurements
+P2_example,TCIA-HN-Cetuximab,5.6,,s_curve,severe,p2_frontal.png,midline_to_max_displacement,98,Example - replace with real measurements
+P3_example,NasalSeg-Zenodo,0.8,,straight,mild,,midline_to_max_displacement,67,Example - CT only no photo

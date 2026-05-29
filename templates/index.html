@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Home{% endblock %}
+{% block content %}
+<div class="card hero">
+    <div class="hero-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4"/>
+            <circle cx="12" cy="12" r="10"/>
+        </svg>
+    </div>
+    <h2>Screen for Nasal Asymmetry</h2>
+    <p>A quick, smartphone-based screening that uses photo analysis and symptom assessment to evaluate possible signs of a deviated nasal septum.</p>
+    <a href="{{ url_for('upload') }}" class="btn primary full-width">Start Screening</a>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: var(--space-md); text-align: center;">How It Works</h3>
+    <div class="features">
+        <div class="feature-item">
+            <div class="feature-icon step-1">1</div>
+            <div class="feature-text">
+                <h4>Upload a Photo</h4>
+                <p>Take or upload a frontal face photo with your nose clearly visible</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon step-2">2</div>
+            <div class="feature-text">
+                <h4>Answer Questions</h4>
+                <p>Complete a short symptom checklist about your breathing and nasal health</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon step-3">3</div>
+            <div class="feature-text">
+                <h4>Get Your Result</h4>
+                <p>Receive a deviation score with severity classification and recommendations</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="text-align: center; margin-top: var(--space-sm);">
+    <a href="{{ url_for('validation_report') }}" style="color: var(--text-light); font-size: 0.85em; text-decoration: none;">Research Validation</a>
+</div>
+{% endblock %}
