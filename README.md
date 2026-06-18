@@ -1,6 +1,7 @@
 # NoseCheck - DNS Screening Tool
 
 A Python-based system for detecting nasal asymmetry using smartphone photos and symptom assessment.
+🔗 Try it live → nosecheck.onrender.com
 
 ## Project Overview
 
@@ -8,6 +9,12 @@ NoseCheck is a research project that aims to detect Deviated Nasal Septum (DNS) 
 1. **Computer Vision Analysis**: Automated facial landmark detection and nasal asymmetry measurements
 2. **Symptom Assessment**: Self-reported symptom questionnaire
 3. **Calibration System**: Validated against 3D-printed models with known deviations
+
+📸 How It Works
+
+Upload a frontal face photo → answer a short symptom questionnaire → get a deviation score with severity classification (Normal / Mild / Moderate / Severe).
+
+Photo Upload  →  MediaPipe Face Landmarks  →  Asymmetry Metrics  →  Deviation Score  →  Result
 
 ## Features
 
