@@ -1,6 +1,14 @@
 filename,known_deviation_mm,model_type,septum_shape,expected_classification,expected_score_min,expected_score_max,data_source,notes
-photo1.png,6,clinical,unknown,moderate,40,65,,User estimate (moderate) - PLACEHOLDER mm value, not a real clinical measurement
-photo2.png,8,clinical,unknown,severe,55,85,,User estimate (severe) - PLACEHOLDER mm value, not a real clinical measurement
-photo3.jpeg,0,clinical,unknown,normal,0,25,,User estimate (normal/straight) - PLACEHOLDER mm value, not a real clinical measurement
-photo4.jpeg,0,clinical,unknown,normal,0,25,,User estimate (normal/straight) - PLACEHOLDER mm value, not a real clinical measurement
-photo5.jpg,8,clinical,unknown,severe,55,85,,User estimate (severe) - PLACEHOLDER mm value, not a real clinical measurement
+straight_model.png,0,3d_model,straight,normal,0,15,,3D printed straight septum - no deviation - TEMPLATE, file not present in repo
+c_curve_model.png,4,3d_model,c_curve,mild,30,50,,3D printed C-curve septum - TEMPLATE, file not present in repo
+s_curve_model.png,8,3d_model,s_curve,severe,55,80,,3D printed S-curve septum - TEMPLATE, file not present in repo
+first-before.png,8,clinical,unknown,severe,55,85,,Clinical before-surgery photo - TEMPLATE, file not present in repo
+image.png,5,clinical,unknown,moderate,35,60,,Clinical photo - TEMPLATE, file not present in repo
+image-23.png,6,clinical,unknown,moderate,40,65,,Clinical photo - TEMPLATE, file not present in repo
+image-after.png,2,clinical,unknown,normal,0,25,,Clinical after-surgery photo - TEMPLATE, file not present in repo
+image_old.png,4,clinical,unknown,mild,25,50,,Clinical before-surgery photo - TEMPLATE, file not present in repo
+photo1.png,6,clinical,unknown,moderate,40,65,,User estimate (moderate) - REAL FILE, present in repo, but mm value is a rough guess, not a real clinical measurement
+photo2.png,8,clinical,unknown,severe,55,85,,User estimate (severe) - REAL FILE, present in repo, but mm value is a rough guess, not a real clinical measurement
+photo3.jpeg,0,clinical,unknown,normal,0,25,,User estimate (normal/straight) - REAL FILE, present in repo, but mm value is a rough guess, not a real clinical measurement
+photo4.jpeg,0,clinical,unknown,normal,0,25,,User estimate (normal/straight) - REAL FILE, present in repo, but mm value is a rough guess, not a real clinical measurement
+photo5.jpg,8,clinical,unknown,severe,55,85,,User estimate (severe) - REAL FILE, present in repo, but mm value is a rough guess, not a real clinical measurement
