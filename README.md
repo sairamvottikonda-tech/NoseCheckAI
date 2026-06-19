@@ -2,7 +2,7 @@
 
 A Python-based system for detecting nasal asymmetry using smartphone photos and symptom assessment.
 
-🔗 Try it live → nosecheck.onrender.com
+🔗 Try it live → nosecheckai-v2.onrender.com
 
 ## Project Overview
 
