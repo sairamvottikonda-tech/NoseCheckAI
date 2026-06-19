@@ -67,20 +67,30 @@ def detect_camera_tilt(landmarks: dict) -> dict:
     else:
         vertical_tilt = 0  # Approximately frontal
     
-    # Check horizontal tilt from face edges symmetry
-    left_x = landmarks['left_face_edge'][0]
-    right_x = landmarks['right_face_edge'][0]
-    face_center_x = (left_x + right_x) / 2
-    
-    nose_tip_x = landmarks['nose_tip'][0]
-    horizontal_offset = abs(nose_tip_x - face_center_x) / face_width
-    
-    # If nose significantly off-center, face may be rotated
-    if horizontal_offset > 0.05:
-        horizontal_tilt = 15  # Rotated
+    # Check horizontal tilt (head yaw/roll) using the EYE LINE, not nose position.
+    # Using nose-tip offset from face-edge-center (as before) is a logic
+    # confound: a person who genuinely HAS nasal deviation would get their
+    # real deviation misread as "camera rotation," contaminating the very
+    # signal this tool is trying to measure. The eye line is independent of
+    # nasal anatomy and gives a much cleaner rotation estimate.
+    left_eye_outer = landmarks.get('left_eye_outer')
+    right_eye_outer = landmarks.get('right_eye_outer')
+
+    if left_eye_outer is not None and right_eye_outer is not None:
+        eye_dx = right_eye_outer[0] - left_eye_outer[0]
+        eye_dy = right_eye_outer[1] - left_eye_outer[1]
+        # Roll angle: how far the eye line is from perfectly horizontal
+        horizontal_tilt = math.degrees(math.atan2(eye_dy, eye_dx)) if abs(eye_dx) > 1e-6 else 0.0
     else:
-        horizontal_tilt = 0  # Frontal
-    
+        # Fallback for when eye landmarks aren't available: nose-based estimate
+        # (kept only as a last resort; flagged as less reliable)
+        left_x = landmarks['left_face_edge'][0]
+        right_x = landmarks['right_face_edge'][0]
+        face_center_x = (left_x + right_x) / 2
+        nose_tip_x = landmarks['nose_tip'][0]
+        horizontal_offset = abs(nose_tip_x - face_center_x) / face_width
+        horizontal_tilt = 15.0 if horizontal_offset > 0.05 else 0.0
+
     # Quality score
     is_frontal = abs(vertical_tilt) < 15 and abs(horizontal_tilt) < 15
     
@@ -166,8 +176,8 @@ def get_angle_warning(tilt_info: dict) -> str:
     elif vertical < -20:
         warnings.append(f"Camera tilted DOWNWARD ~{abs(vertical):.0f}° - Please hold camera at eye level")
     
-    if horizontal > 15:
-        warnings.append("Face appears rotated - Please face camera directly")
+    if abs(horizontal) > 15:
+        warnings.append(f"Head appears tilted/rotated ~{abs(horizontal):.0f}° - Please face camera directly with head level")
     
     if warnings:
         return "⚠️ Photo angle issue: " + "; ".join(warnings)

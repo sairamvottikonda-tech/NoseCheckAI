@@ -23,21 +23,55 @@ def preprocess(image: np.ndarray) -> np.ndarray:
     """
     Preprocess an image for landmark detection.
 
-    - Resizes to target dimensions (640x480 by default)
+    - Resizes to fit within target dimensions WHILE PRESERVING ASPECT RATIO
+      (letterboxed/padded, never stretched). This matters a lot in practice:
+      most phone photos are portrait (e.g. 1080x1920), and naively resizing
+      to a fixed 640x480 (4:3 landscape) box stretches the image horizontally
+      by ~2.4x relative to vertical, which directly corrupts every
+      horizontal-distance metric (lateral_deviation, nostril_asymmetry,
+      bridge_straightness).
     - Optionally normalizes lighting using CLAHE
 
     Args:
         image: Input image as NumPy array (BGR).
 
     Returns:
-        Preprocessed image.
+        Preprocessed image, same aspect ratio as input, fit within
+        (TARGET_WIDTH, TARGET_HEIGHT) and padded with black bars as needed.
     """
     processed = image.copy()
 
-    # Resize to target dimensions
+    # Normalize to 3-channel BGR. Some uploads (old scanned photos, certain
+    # camera/export modes, or images that lost color info during compression)
+    # arrive as single-channel grayscale. Every downstream step (CLAHE,
+    # MediaPipe's RGB conversion, etc.) assumes 3 channels, so converting
+    # here once avoids a crash later -- this previously caused an
+    # unhandled cv2.error if NORMALIZE_LIGHTING was ever enabled.
+    if processed.ndim == 2:
+        processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2BGR)
+    elif processed.ndim == 3 and processed.shape[2] == 4:
+        # RGBA (e.g. some PNG uploads) -> drop alpha channel
+        processed = cv2.cvtColor(processed, cv2.COLOR_BGRA2BGR)
+
     h, w = processed.shape[:2]
     if (w, h) != (TARGET_WIDTH, TARGET_HEIGHT):
-        processed = cv2.resize(processed, (TARGET_WIDTH, TARGET_HEIGHT))
+        # Scale so the image fits *within* the target box without distortion
+        scale = min(TARGET_WIDTH / w, TARGET_HEIGHT / h)
+        new_w = max(1, round(w * scale))
+        new_h = max(1, round(h * scale))
+        resized = cv2.resize(processed, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+        # Letterbox (pad) to the exact target size, centering the image
+        pad_w = TARGET_WIDTH - new_w
+        pad_h = TARGET_HEIGHT - new_h
+        top = pad_h // 2
+        bottom = pad_h - top
+        left = pad_w // 2
+        right = pad_w - left
+        processed = cv2.copyMakeBorder(
+            resized, top, bottom, left, right,
+            borderType=cv2.BORDER_CONSTANT, value=(0, 0, 0)
+        )
 
     # Optional lighting normalization
     if NORMALIZE_LIGHTING:

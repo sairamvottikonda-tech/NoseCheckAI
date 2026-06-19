@@ -220,14 +220,18 @@ def analyze():
 
 
 def _classify_score(score: float) -> str:
-    """Classify severity from 0-100 score."""
-    if score < 25:
-        return "normal"
-    if score < 50:
-        return "mild"
-    if score < 75:
-        return "moderate"
-    return "severe"
+    """
+    Classify severity from 0-100 score.
+
+    Uses the SAME classification_thresholds defined in config.py (and used
+    by src/scoring/score_calculator.py) so that the photo-only score and the
+    combined visual+symptom score are always classified consistently. These
+    used to be two separate hardcoded threshold sets that disagreed with
+    each other (e.g. a score of 60 was "moderate" in one path and "severe"
+    in the other) -- that inconsistency is what this fixes.
+    """
+    from src.scoring.score_calculator import _classify
+    return _classify(score)
 
 
 @app.route("/questionnaire", methods=["GET", "POST"])

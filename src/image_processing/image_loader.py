@@ -12,9 +12,38 @@ import cv2
 import numpy as np
 
 
+def _load_with_exif_correction(path: Union[str, Path]) -> Optional[np.ndarray]:
+    """
+    Load an image and guarantee EXIF orientation is applied, returning BGR.
+
+    Phone cameras (especially iPhones) commonly save photos with the raw
+    sensor data in one orientation plus an EXIF "Orientation" tag saying
+    how to rotate it for display. Whether cv2.imread() honors this tag is
+    version- and build-dependent (older/some OpenCV builds ignore it
+    entirely), which would silently feed a sideways or upside-down face
+    into landmark detection. Pillow's EXIF handling is well established and
+    library-version independent, so we use it explicitly here rather than
+    trusting OpenCV's internal behavior.
+    """
+    try:
+        from PIL import Image, ImageOps
+        with Image.open(str(path)) as pil_img:
+            pil_img = ImageOps.exif_transpose(pil_img)  # applies/clears EXIF rotation
+            pil_img = pil_img.convert("RGB")
+            rgb = np.array(pil_img)
+            return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+    except Exception:
+        # Fall back to direct OpenCV read if Pillow can't open it for any reason
+        image = cv2.imread(str(path))
+        return image
+
+
 def load_image(path: Union[str, Path]) -> Optional[np.ndarray]:
     """
     Load an image from a file path and return as NumPy array (BGR format for OpenCV).
+
+    EXIF orientation is always corrected, so the returned array is "upright"
+    regardless of how the originating camera stored the raw pixel data.
 
     Args:
         path: Path to the image file (supports jpg, jpeg, png).
@@ -26,7 +55,7 @@ def load_image(path: Union[str, Path]) -> Optional[np.ndarray]:
     if not path.exists():
         return None
 
-    image = cv2.imread(str(path))
+    image = _load_with_exif_correction(path)
     if image is None:
         return None
 

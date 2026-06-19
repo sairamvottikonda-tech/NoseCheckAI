@@ -53,6 +53,13 @@ NASAL_LANDMARKS = {
     "right_nostril_inner": 423,
     "left_face_edge": 234,
     "right_face_edge": 454,
+    # Eye corners: used together with face edges to compute a midline that's
+    # robust to head roll/yaw, instead of relying on face-edge midpoint alone
+    # (which shifts noticeably whenever the head isn't held dead-level).
+    "left_eye_outer": 33,
+    "right_eye_outer": 263,
+    "left_eye_inner": 133,
+    "right_eye_inner": 362,
 }
 
 # Measurement parameters
@@ -70,6 +77,22 @@ MEASUREMENT = {
 #   nostril_asymmetry: 0.10 ratio = normal → score ~16
 #   bridge_straightness: same as lateral
 #
+# ⚠️ UNRESOLVED CALIBRATION DISCREPANCY (flagged during code review, not yet fixed):
+# docs/ALGORITHM_CALIBRATION_LOG.md describes a "v3.0" calibration
+# (lateral/bridge scaling=15000, septal_angle scaling=40, lateral noise_floor=0.0005)
+# that the log says was empirically validated against real clinical
+# before-surgery photos with known deviations (8mm -> 76.0 severe,
+# 5mm -> 67.9 severe, 4mm -> 45.6 moderate). The values actually set below
+# (scaling=1500, noise_floor=0.003) are ~10x more conservative than that
+# and produce much lower scores for the same deviations (8mm -> ~35 mild,
+# 4mm -> ~17 normal in isolated testing) -- meaning this build may be
+# systematically UNDER-scoring real-world deviation severity right now.
+# It's unclear from the repo history whether reverting away from v3.0 was
+# intentional (e.g. v3.0 caused false positives on normal faces, which the
+# log itself flags as a tradeoff) or accidental. THIS NEEDS TO BE RESOLVED
+# WITH REAL TEST DATA before relying on this tool's severity classifications,
+# ideally using the ground-truth patient data from the planned clinical
+# validation study rather than guessing at scaling factors again.
 SCORING = {
     "weights": {
         "lateral_deviation": 0.4,
