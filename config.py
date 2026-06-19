@@ -123,10 +123,29 @@ SCORING = {
     #   5° septal angle         → 45  (moderate boundary)
     #   0.20 nostril ratio      → 36  (mild)
     "scaling_factors": {
-        "lateral_deviation": 1500,   # 0.02 → 30, 0.04 → 60
-        "septal_angle": 10,          # 3° → 25, 5° → 45, 8° → 75
-        "nostril_asymmetry": 200,    # 0.15 → 26, 0.30 → 56
-        "bridge_straightness": 1500, # same as lateral
+        # CALIBRATION STATUS (tested against 5 real photos with user
+        # severity estimates, see data/calibration_models/):
+        # A 3x increase (lateral/bridge=4500, angle=30) was tested and
+        # REVERTED. Result: R² ticked up slightly (0.10 -> 0.14) but
+        # category accuracy got WORSE (40% -> 20%), because a photo guessed
+        # "normal" had a higher raw measurement than a photo guessed
+        # "moderate" -- uniform scaling preserves rank order, so it can
+        # never fix that; it just moved a false positive into range while
+        # pushing severe photos further from correct.
+        #
+        # CONCLUSION: this isn't a scaling-factor problem in isolation.
+        # Either (a) the 5 severity estimates used for testing were rough
+        # guesses, not clinical truth, and may not reflect what MediaPipe's
+        # landmark geometry actually captures, or (b) the measurement
+        # approach has a genuine validity gap for at least some deviation
+        # types. Reverted to original values below pending REAL clinical
+        # ground truth (Dr. Markarian's patient data) -- guessing at scaling
+        # numbers again without that risks moving accuracy further in the
+        # wrong direction, exactly as just happened.
+        "lateral_deviation": 1500,
+        "septal_angle": 10,
+        "nostril_asymmetry": 200,
+        "bridge_straightness": 1500,
     },
     # Noise floor: measurements below these values are treated as zero
     # Prevents sub-pixel jitter and normal micro-asymmetry from inflating scores
