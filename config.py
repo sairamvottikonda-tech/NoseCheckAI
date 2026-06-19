@@ -60,6 +60,17 @@ NASAL_LANDMARKS = {
     "right_eye_outer": 263,
     "left_eye_inner": 133,
     "right_eye_inner": 362,
+    # Intermediate bridge points (upper -> lower), ordered nearest-forehead
+    # to nearest-tip. Previously the tool only checked the two bridge
+    # ENDPOINTS (168 and the tip), which means a C-curve or S-curve
+    # deviation that bends partway down the bridge -- but still lines up
+    # the two endpoints vertically -- could score as perfectly straight.
+    # These let bridge_straightness measure the actual curve, not just a
+    # straight line between two fixed points.
+    "bridge_upper": 6,
+    "bridge_upper_mid": 197,
+    "bridge_mid": 195,
+    "bridge_lower_mid": 5,
 }
 
 # Measurement parameters

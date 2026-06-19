@@ -147,7 +147,21 @@ def compensate_for_tilt(measurements: dict, tilt_info: dict) -> dict:
         # May need slight adjustment, but keep conservative
         
     elif vertical_tilt < -10:  # Downward tilt
-        # Less common - minimal correction for now
+        # Previously this branch did nothing at all, even when significant
+        # downward tilt was detected -- meaning a photo flagged as
+        # "camera tilted downward 20 degrees" got the exact same
+        # measurements as a perfectly frontal photo.
+        #
+        # The foreshortening effect on the bridge-to-tip line is
+        # geometrically symmetric whether the camera tilts up or down (in
+        # both cases the nose's vertical extent is compressed in the 2D
+        # projection), so the same inverse-cosine correction applies here.
+        # Like the upward-tilt branch above, this is an approximation, not
+        # an empirically validated correction -- it should be checked
+        # against real tilted photos with known ground truth once that
+        # data is available, same as the rest of the scoring calibration.
+        angle_correction = 1.0 / math.cos(tilt_rad)
+        adjusted['septal_angle'] = measurements['septal_angle'] * angle_correction
         pass
     
     return adjusted

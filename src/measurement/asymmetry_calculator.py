@@ -5,6 +5,7 @@ Computes lateral deviation, septal angle, nostril asymmetry, and bridge straight
 from nasal landmarks.
 """
 
+import math
 import sys
 from pathlib import Path
 
@@ -30,6 +31,64 @@ from src.measurement.geometry_utils import (
 )
 
 
+def _bridge_curve_points(landmarks: dict) -> list:
+    """
+    Collect all available bridge landmarks, ordered from upper (near
+    forehead) to lower (near tip), plus the tip itself as the final point.
+
+    Falls back gracefully: if the intermediate bridge points aren't present
+    in the landmarks dict (e.g. an older caller that hasn't been updated),
+    this returns just [nose_bridge, nose_tip] -- the original 2-point
+    behavior -- so nothing breaks for partial landmark sets.
+    """
+    ordered_keys = ["bridge_upper", "bridge_upper_mid", "nose_bridge", "bridge_mid", "bridge_lower_mid"]
+    points = [landmarks[k] for k in ordered_keys if k in landmarks]
+    if "nose_tip" in landmarks:
+        points.append(landmarks["nose_tip"])
+    # Need at least 2 points to measure anything
+    if len(points) < 2:
+        return [landmarks["nose_bridge"], landmarks["nose_tip"]]
+    return points
+
+
+def _max_curve_deviation_from_line(points: list) -> float:
+    """
+    Measure the largest perpendicular deviation of any interior point from
+    the straight line connecting the first and last points in the list.
+
+    This is what makes a C-curve or S-curve deviation detectable: the two
+    endpoints (top of bridge, tip) can line up vertically while a point in
+    the middle of the bridge bulges to one side -- a single straight-line
+    measurement between just the endpoints would miss that entirely, but
+    checking every intermediate point against that line catches it.
+
+    Returns the max perpendicular distance in the same units as the input
+    points (pixels, if pixel coordinates were passed in).
+    """
+    if len(points) < 3:
+        # Only two points (or fewer) -- no interior point to bulge, so the
+        # straight-line distance between them is the only thing we can
+        # measure to begin with. distance_to_midline-style perpendicular
+        # deviation doesn't apply with just 2 points.
+        return 0.0
+
+    x0, y0 = points[0]
+    x1, y1 = points[-1]
+    line_dx = x1 - x0
+    line_dy = y1 - y0
+    line_len = math.sqrt(line_dx ** 2 + line_dy ** 2)
+    if line_len < 1e-6:
+        return 0.0
+
+    max_dev = 0.0
+    for (px, py) in points[1:-1]:
+        # Perpendicular distance from point to the line through (x0,y0)-(x1,y1)
+        # via the standard 2D point-to-line distance formula.
+        dev = abs((px - x0) * line_dy - (py - y0) * line_dx) / line_len
+        max_dev = max(max_dev, dev)
+    return max_dev
+
+
 def calculate(landmarks: dict) -> dict:
     """
     Calculate all asymmetry metrics from nasal landmarks.
@@ -39,6 +98,8 @@ def calculate(landmarks: dict) -> dict:
                    Required keys: nose_tip, nose_bridge, left_nostril_outer,
                    left_nostril_inner, right_nostril_outer, right_nostril_inner,
                    left_face_edge, right_face_edge.
+                   Optional (for curve-based bridge measurement): bridge_upper,
+                   bridge_upper_mid, bridge_mid, bridge_lower_mid.
 
     Returns:
         Dict with keys: lateral_deviation, septal_angle, nostril_asymmetry,
@@ -74,8 +135,22 @@ def calculate(landmarks: dict) -> dict:
     nostril_sum = left_width + right_width
     nostril_asymmetry = nostril_diff / nostril_sum if nostril_sum > 1e-6 else 0.0
 
-    # Bridge straightness: deviation of bridge from midline
-    bridge_midline_dist = abs(distance_to_midline(bridge, midline_x))
+    # Bridge straightness: previously this only measured how far the single
+    # "nose_bridge" landmark sat from the midline -- a C-curve or S-curve
+    # deviation that bends partway down the bridge while the bridge-point
+    # and tip happen to both sit near the midline would score as
+    # essentially straight. Now we measure the largest deviation of ANY
+    # point along the bridge (using all available intermediate bridge
+    # landmarks) from a straight reference line drawn top-to-tip. This
+    # catches a bulge/curve in the middle that the old 2-point check missed.
+    curve_points = _bridge_curve_points(landmarks)
+    curve_dev_px = _max_curve_deviation_from_line(curve_points)
+    # Fall back to the original single-point measurement if we only have
+    # 2 points (e.g. intermediate bridge landmarks weren't provided)
+    if curve_dev_px == 0.0 and len(curve_points) <= 2:
+        bridge_midline_dist = abs(distance_to_midline(bridge, midline_x))
+    else:
+        bridge_midline_dist = curve_dev_px
     bridge_straightness = bridge_midline_dist / face_width if MEASUREMENT_CONFIG.get("normalize_by_face_width", True) else bridge_midline_dist
 
     return {
