@@ -1,0 +1,8 @@
+venv/
+.git/
+__pycache__/
+*.pyc
+.DS_Store
+nosecheck_fixes/
+nosecheck_fixes.zip
+*.zip

@@ -53,3 +53,5 @@
 # Documentation
 !docs/
 !docs/**/*.md
+!Dockerfile
+!.dockerignore

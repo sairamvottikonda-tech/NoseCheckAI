@@ -1,12 +1,9 @@
 services:
   - type: web
     name: nosecheck
-    runtime: python
+    runtime: docker
     plan: free
-    buildCommand: "mkdir -p models && curl -sL -o models/face_landmarker.task https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task && pip install -r requirements-production.txt"
-    startCommand: "gunicorn -w 1 -b 0.0.0.0:$PORT wsgi:application"
+    dockerfilePath: ./Dockerfile
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.16
       - key: WEB_CONCURRENCY
         value: "1"
