@@ -142,10 +142,10 @@ SCORING = {
         # ground truth (Dr. Markarian's patient data) -- guessing at scaling
         # numbers again without that risks moving accuracy further in the
         # wrong direction, exactly as just happened.
-        "lateral_deviation": 4950,
-        "septal_angle": 33,
-        "nostril_asymmetry": 660,
-        "bridge_straightness": 4950,
+        "lateral_deviation": 1500,
+        "septal_angle": 10,
+        "nostril_asymmetry": 200,
+        "bridge_straightness": 1500,
     },
     # Noise floor: measurements below these values are treated as zero
     # Prevents sub-pixel jitter and normal micro-asymmetry from inflating scores
