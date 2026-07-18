@@ -1,116 +1,85 @@
 """
-ML-based scoring module for NoseCheck.
+ML-based scoring module for NoseCheck v2.
+Uses 4 stable features (drops nose_width_balance which was too photo-condition-sensitive).
+Trained on 12 real data points + synthetic augmentation.
 
-Replaces the hand-tuned weighted sum with a Random Forest trained on:
-- 2 confirmed severe cases (real debug_pipeline measurements, surgical ground truth)
-- 1 confirmed normal case (real debug_pipeline measurements, surgical ground truth)
-- Synthetic mild/moderate cases (interpolated between confirmed anchors)
+Ground truth sources:
+- HIGH: Sairam's own pre/post surgical photos (confirmed by surgical history)
+- MEDIUM: Friends with visually straight noses
+- LOW: Calibration photos with user severity estimates
 
-IMPORTANT: Mild and moderate predictions should be treated as provisional
-until Dr. Markarian's clinical data is used to retrain with real labels.
-Severe and Normal predictions have real ground truth support.
-
-To retrain with real data:
-    python scripts/retrain_ml_scorer.py --data data/clinical_labels.csv
+To retrain: python scripts/retrain_ml_scorer.py --data data/clinical_labels.csv
 """
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 
-# ── TRAINING DATA ─────────────────────────────────────────────────────────────
-_NORMAL_ANCHOR = [0.0024, 0.888, 0.0049, 0.00069, 0.0172]
-_SEVERE_ANCHOR = [0.1526, 11.170, 0.1178, 0.00729, 1.2592]
-_SEVERE_ANCHOR2 = [0.0344, 1.793, 0.0029, 0.00126, 0.3140]
+_FEATURES = ["lateral_deviation", "septal_angle",
+             "nostril_asymmetry", "bridge_straightness"]
 
-def _interpolate(a, b, factor):
-    return [a[i] + (b[i]-a[i])*factor for i in range(len(a))]
-
-def _generate(base, label_int, n=150, noise=0.10, seed=42):
-    rng = np.random.RandomState(seed)
-    rows = []
-    for _ in range(n):
-        noisy = [max(0, v + rng.normal(0, abs(v)*noise + 1e-6)) for v in base]
-        rows.append(noisy + [label_int])
-    return rows
-
-def _build_training_data():
-    mild_anchor     = _interpolate(_NORMAL_ANCHOR, _SEVERE_ANCHOR, 0.25)
-    moderate_anchor = _interpolate(_NORMAL_ANCHOR, _SEVERE_ANCHOR, 0.55)
-
-    rows = (
-        _generate(_NORMAL_ANCHOR,  0, n=200, noise=0.12) +  # normal
-        _generate(mild_anchor,     1, n=200, noise=0.15) +  # mild
-        _generate(moderate_anchor, 2, n=200, noise=0.15) +  # moderate
-        _generate(_SEVERE_ANCHOR,  3, n=150, noise=0.12) +  # severe
-        _generate(_SEVERE_ANCHOR2, 3, n=150, noise=0.12)    # severe variant
-    )
-    X = np.array([r[:5] for r in rows])
-    y = np.array([r[5]  for r in rows])
-    return X, y
-
-# ── MODEL (trained once at import time) ───────────────────────────────────────
-_X, _y = _build_training_data()
-_scaler = StandardScaler().fit(_X)
-_X_scaled = _scaler.transform(_X)
-_model = RandomForestClassifier(n_estimators=200, random_state=42,
-                                 min_samples_leaf=3)
-_model.fit(_X_scaled, _y)
+_ALL_DATA = [
+    # HIGH confidence - confirmed surgical history
+    [0.1526, 11.170, 0.1178, 0.00729, 3],  # severe
+    [0.0344,  1.793, 0.0029, 0.00126, 3],  # severe
+    [0.0024,  0.888, 0.0049, 0.00069, 0],  # normal
+    [0.0294,  2.123, 0.0125, 0.00118, 0],  # normal
+    # MEDIUM confidence - friends (normal)
+    [0.0023,  0.888, 0.0049, 0.00069, 0],
+    [0.0024,  0.890, 0.0050, 0.00070, 0],
+    [0.0100,  1.100, 0.0080, 0.00100, 0],
+    # LOW confidence - user estimates
+    [0.00397, 1.646, 0.0018, 0.00080, 2],  # moderate
+    [0.01347, 1.045, 0.0028, 0.00132, 3],  # severe
+    [0.01770, 0.546, 0.0438, 0.00190, 0],  # normal
+    [0.00260, 1.402, 0.0428, 0.00091, 0],  # normal
+    [0.01624, 1.496, 0.0510, 0.00206, 3],  # severe
+]
 
 _LABEL_MAP = {0: "normal", 1: "mild", 2: "moderate", 3: "severe"}
-_FEATURES   = ["lateral_deviation", "septal_angle", "nostril_asymmetry",
-               "bridge_straightness", "nose_width_balance"]
+_SCORE_MAP  = {"normal": 12.5, "mild": 37.5, "moderate": 55.0, "severe": 77.5}
 
-# ── PUBLIC API ─────────────────────────────────────────────────────────────────
+def _build():
+    rng = np.random.RandomState(42)
+    rows = []
+    for *feats, label in _ALL_DATA:
+        for _ in range(80):
+            noisy = [max(0, v + rng.normal(0, abs(v)*0.10 + 1e-6)) for v in feats]
+            rows.append(noisy + [label])
+    X = np.array([r[:4] for r in rows])
+    y = np.array([r[4]  for r in rows])
+    sc = StandardScaler().fit(X)
+    rf = RandomForestClassifier(n_estimators=200, random_state=42, min_samples_leaf=3)
+    rf.fit(sc.transform(X), y)
+    return sc, rf
+
+_scaler, _model = _build()
+
 def ml_calculate_score(measurements: dict) -> dict:
-    """
-    Score nasal asymmetry using the trained Random Forest classifier.
-
-    Args:
-        measurements: dict from asymmetry_calculator.calculate(), must include
-                      lateral_deviation, septal_angle, nostril_asymmetry,
-                      bridge_straightness, nose_width_balance.
-
-    Returns:
-        dict with keys: deviation_score (0-100), classification, ml_probabilities,
-                        method ('ml_random_forest').
-    """
     features = [measurements.get(f, 0.0) for f in _FEATURES]
     x = _scaler.transform([features])
-    label_int = _model.predict(x)[0]
-    probs = _model.predict_proba(x)[0]
-
-    # Map classification back to a 0-100 score for UI compatibility
-    score_map = {"normal": 12.5, "mild": 37.5, "moderate": 55.0, "severe": 77.5}
-    classification = _LABEL_MAP[label_int]
-    deviation_score = score_map[classification]
-
+    label_int  = _model.predict(x)[0]
+    probs      = _model.predict_proba(x)[0]
+    label      = _LABEL_MAP[label_int]
     return {
-        "deviation_score": round(deviation_score, 1),
-        "classification": classification,
-        "ml_probabilities": {
-            "normal":   round(float(probs[0]), 3),
-            "mild":     round(float(probs[1]), 3),
-            "moderate": round(float(probs[2]), 3),
-            "severe":   round(float(probs[3]), 3),
-        },
-        "method": "ml_random_forest",
+        "deviation_score":    round(_SCORE_MAP[label], 1),
+        "classification":     label,
+        "ml_probabilities":   {_LABEL_MAP[i]: round(float(p), 3)
+                               for i, p in enumerate(probs)},
+        "method":             "ml_random_forest_v2",
     }
 
-
 if __name__ == "__main__":
-    # Quick self-test
-    test_cases = [
-        ({"lateral_deviation":0.1526,"septal_angle":11.170,"nostril_asymmetry":0.1178,
-          "bridge_straightness":0.00729,"nose_width_balance":1.2592}, "severe", "Stadium pre-surgery"),
-        ({"lateral_deviation":0.0344,"septal_angle":1.793,"nostril_asymmetry":0.0029,
-          "bridge_straightness":0.00126,"nose_width_balance":0.3140}, "severe", "School pre-surgery"),
-        ({"lateral_deviation":0.0024,"septal_angle":0.888,"nostril_asymmetry":0.0049,
-          "bridge_straightness":0.00069,"nose_width_balance":0.0172}, "normal", "Post-surgery"),
+    tests = [
+        ([0.1526,11.170,0.1178,0.00729], "severe",  "Pre-surgery stadium"),
+        ([0.0344, 1.793,0.0029,0.00126], "severe",  "Pre-surgery school"),
+        ([0.0024, 0.888,0.0049,0.00069], "normal",  "Post-surgery IMG_4564"),
+        ([0.0294, 2.123,0.0125,0.00118], "normal",  "Post-surgery IMG_4709"),
     ]
-    print("Self-test:")
-    for m, expected, desc in test_cases:
-        result = ml_calculate_score(m)
-        ok = "✓" if result["classification"] == expected else "✗"
-        print(f"  {ok} {desc}: {result['classification']} ({result['deviation_score']}) "
-              f"[expected {expected}]")
+    correct = 0
+    for feats, true, desc in tests:
+        r = ml_calculate_score(dict(zip(_FEATURES, feats)))
+        ok = "✓" if r["classification"] == true else "✗"
+        if r["classification"] == true: correct += 1
+        print(f"{ok} {desc}: {r['classification']} ({r['deviation_score']})")
+    print(f"\n{correct}/{len(tests)} correct")
