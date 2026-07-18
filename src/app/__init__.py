@@ -288,3 +288,35 @@ def validation_report():
 
 def create_app():
     return app
+
+
+@app.route("/debug/measurements", methods=["POST"])
+def debug_measurements():
+    import json as _j
+    if "photo" not in request.files:
+        return _j.dumps({"error": "no photo"}), 400
+    photo = request.files["photo"]
+    suffix = Path(photo.filename).suffix.lower()
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        photo.save(tmp.name)
+        tmp_path = tmp.name
+    try:
+        from src.image_processing.image_loader import load_image
+        from src.image_processing.preprocessor import preprocess
+        from src.landmark_detection.detector import detect_landmarks
+        from src.measurement.asymmetry_calculator import calculate
+        from src.measurement.angle_detection import detect_camera_tilt, compensate_for_tilt
+        image = load_image(tmp_path)
+        if image is None:
+            return _j.dumps({"error": "failed"}), 400
+        processed = preprocess(image)
+        landmarks = detect_landmarks(processed) or detect_landmarks(image)
+        if landmarks is None:
+            return _j.dumps({"error": "no face"}), 400
+        tilt = detect_camera_tilt(landmarks)
+        m = calculate(landmarks)
+        if not tilt["is_frontal"]:
+            m = compensate_for_tilt(m, tilt)
+        return _j.dumps({"input_shape": list(image.shape), "processed_shape": list(processed.shape), "measurements": {k: float(v) for k,v in m.items()}, "tilt": {k: float(v) if isinstance(v, (int,float)) else v for k,v in tilt.items()}}, indent=2), 200
+    finally:
+        import os; os.unlink(tmp_path)
