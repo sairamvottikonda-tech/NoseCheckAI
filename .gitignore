@@ -56,3 +56,4 @@
 !Dockerfile
 !.dockerignore
 !LIMITATIONS.md
+!data/ct_validation/clinical_labels.csv

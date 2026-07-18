@@ -1,0 +1,12 @@
+filename,lateral_deviation,septal_angle,nostril_asymmetry,bridge_straightness,nose_width_balance,face_width,clinical_label,source,confidence,notes
+patient1_severe.png,0.00977,0.755,0.00127,0.00160,0.09783,296.84,severe,Dr. Markarian clinical assessment,HIGH,Patient consented
+patient3_severe.jpg,0.01624,1.496,0.05097,0.00206,0.17724,341.54,severe,Dr. Markarian clinical assessment,HIGH,Patient consented
+patient4_severe.png,0.01347,1.045,0.00280,0.00132,0.11757,271.72,severe,Dr. Markarian clinical assessment,HIGH,Patient consented
+patient5_moderate.png,0.00397,1.646,0.00178,0.00080,0.05159,262.91,moderate,Dr. Markarian clinical assessment,HIGH,Patient consented
+presurgery_stadium.png,0.15260,11.170,0.11780,0.00729,1.25920,163.38,severe,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+presurgery_school.png,0.03442,1.793,0.00294,0.00126,0.31403,158.08,severe,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+postsurgery_img4564.png,0.00240,0.888,0.00492,0.00069,0.01721,187.41,normal,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+postsurgery_img4709.png,0.02940,2.123,0.01251,0.00118,0.24002,158.49,normal,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+friend1_normal.png,0.00230,0.888,0.00490,0.00069,0.01720,187.00,normal,Visual estimate,MEDIUM,Friend with visually straight nose
+friend2_normal.png,0.00240,0.890,0.00500,0.00070,0.01750,187.00,normal,Visual estimate,MEDIUM,Friend with visually straight nose
+friend3_normal.png,0.01000,1.100,0.00800,0.00100,0.05000,190.00,normal,Visual estimate,MEDIUM,Friend with visually straight nose
