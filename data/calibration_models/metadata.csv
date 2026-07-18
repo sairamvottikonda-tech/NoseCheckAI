@@ -1,6 +1,17 @@
 filename,known_deviation_mm,model_type,septum_shape,expected_classification,expected_score_min,expected_score_max,data_source,notes
-photo1.png,,clinical,unknown,moderate,40,65,,User estimate - C-curve looking deviation - PLACEHOLDER until real clinical measurement available
-photo2.png,,clinical,unknown,severe,55,85,,User estimate - PLACEHOLDER until real clinical measurement available
-photo3.jpeg,,clinical,unknown,normal,0,25,,User estimate - believed straight - PLACEHOLDER until real clinical measurement available
-photo4.jpeg,,clinical,unknown,normal,0,25,,User estimate - believed straight - PLACEHOLDER until real clinical measurement available
-photo5.jpg,,clinical,unknown,severe,55,85,,User estimate - PLACEHOLDER until real clinical measurement available
+straight_model.png,0,3d_model,straight,normal,0,15,,3D printed straight septum - TEMPLATE (file not present in repo)
+c_curve_model.png,4,3d_model,c_curve,mild,30,50,,3D printed C-curve septum - TEMPLATE (file not present in repo)
+s_curve_model.png,8,3d_model,s_curve,severe,55,80,,3D printed S-curve septum - TEMPLATE (file not present in repo)
+photo1.png,6,clinical,unknown,moderate,40,65,,User estimate (moderate) - REAL FILE present in repo
+photo2.png,8,clinical,unknown,severe,55,85,,User estimate (severe) - REAL FILE present in repo
+photo3.jpeg,0,clinical,unknown,normal,0,25,,User estimate (normal) - REAL FILE present in repo
+photo4.jpeg,0,clinical,unknown,normal,0,25,,User estimate (normal) - REAL FILE present in repo
+photo5.jpg,8,clinical,unknown,severe,55,85,,User estimate (severe) - REAL FILE present in repo
+patient1_severe.png,8,clinical,unknown,severe,65,85,Dr. Markarian M.D.,Clinical assessment - patient consented - REAL FILE
+patient3_severe.jpg,8,clinical,unknown,severe,65,85,Dr. Markarian M.D.,Clinical assessment - patient consented - REAL FILE
+patient4_severe.png,8,clinical,unknown,severe,65,85,Dr. Markarian M.D.,Clinical assessment - patient consented - REAL FILE
+patient5_moderate.png,5,clinical,unknown,moderate,45,65,Dr. Markarian M.D.,Clinical assessment - patient consented - REAL FILE
+presurgery_stadium.png,8,clinical,unknown,severe,80,90,Surgical ground truth,Developer own case confirmed by septoplasty - REAL FILE
+presurgery_school.png,8,clinical,unknown,severe,65,80,Surgical ground truth,Developer own case confirmed by septoplasty - REAL FILE
+postsurgery_img4564.png,0,clinical,unknown,normal,0,20,Surgical ground truth,Developer own case post-septoplasty confirmed normal - REAL FILE
+postsurgery_img4709.png,0,clinical,unknown,normal,0,25,Surgical ground truth,Developer own case post-septoplasty confirmed normal - REAL FILE
