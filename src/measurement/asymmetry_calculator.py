@@ -153,11 +153,33 @@ def calculate(landmarks: dict) -> dict:
         bridge_midline_dist = curve_dev_px
     bridge_straightness = bridge_midline_dist / face_width if MEASUREMENT_CONFIG.get("normalize_by_face_width", True) else bridge_midline_dist
 
+    # Nose width balance (NEW, experimental): compares left-half-width to
+    # right-half-width of the nose at nostril level, measured from the
+    # midline -- not nostril-to-nostril like nostril_asymmetry above. This
+    # can catch a nose that sits shifted/bulged to one side as a whole,
+    # even when the two individual nostrils are similar widths to each
+    # other (which is exactly what nostril_asymmetry alone would miss).
+    # Tested against 2 real photos where the existing metrics scored near
+    # zero despite visible asymmetry: this metric showed 8.6% and 12.1%
+    # asymmetry on those same photos, a real signal the other metrics
+    # didn't capture. NOT YET validated against clinical ground truth --
+    # returned here for comparison/logging, not yet included in the
+    # weighted score, until there's real data to confirm it actually
+    # improves accuracy rather than introducing new false positives.
+    left_half_width = midline_x - landmarks["left_nostril_outer"][0]
+    right_half_width = landmarks["right_nostril_outer"][0] - midline_x
+    half_width_avg = (left_half_width + right_half_width) / 2
+    if half_width_avg > 1e-6:
+        nose_width_balance = abs(left_half_width - right_half_width) / half_width_avg
+    else:
+        nose_width_balance = 0.0
+
     return {
         "lateral_deviation": lateral_deviation,
         "septal_angle": septal_angle,
         "nostril_asymmetry": nostril_asymmetry,
         "bridge_straightness": bridge_straightness,
+        "nose_width_balance": nose_width_balance,
         "face_width": face_width,
     }
 
