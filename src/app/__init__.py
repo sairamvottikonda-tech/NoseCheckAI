@@ -24,10 +24,10 @@ try:
     app.config["MAX_CONTENT_LENGTH"] = config.FLASK_CONFIG.get("max_content_length", 16 * 1024 * 1024)
     upload = config.FLASK_CONFIG.get("upload_folder", _root / "data" / "images")
     app.config["UPLOAD_FOLDER"] = str(Path(upload))
-    ALLOWED_EXTENSIONS = config.FLASK_CONFIG.get("allowed_extensions", {"png", "jpg", "jpeg"})
+    ALLOWED_EXTENSIONS = config.FLASK_CONFIG.get("allowed_extensions", {"png", "jpg", "jpeg", "heic", "heif"})
 except ImportError:
     app.config["UPLOAD_FOLDER"] = str(_root / "data" / "images")
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "heic", "heif"}
 
 _upload = Path(app.config["UPLOAD_FOLDER"])
 try:
