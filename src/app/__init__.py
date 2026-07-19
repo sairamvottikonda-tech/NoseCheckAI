@@ -55,7 +55,7 @@ def run_pipeline(image_path):
     from src.landmark_detection.stable_detector import detect_landmarks_stable
     from src.measurement.asymmetry_calculator import calculate
     from src.measurement.angle_detection import detect_camera_tilt, compensate_for_tilt, get_angle_warning
-    from src.scoring.score_calculator import calculate_score
+    from src.scoring.ml_score_calculator import ml_calculate_score as calculate_score
 
     image = load_image(image_path)
     if image is None:
@@ -150,6 +150,7 @@ def upload():
                     "classification": result["classification"],
                     "metrics": result.get("raw_metrics", {}),
                     "analysis_method": result.get("analysis_method", "landmark"),
+                    "debug_method": result.get("method", "MISSING"),
                 }
                 
                 if result.get('angle_warning'):
@@ -200,6 +201,7 @@ def analyze():
             "classification": result["classification"],
             "metrics": result.get("raw_metrics", {}),
             "analysis_method": result.get("analysis_method", "landmark"),
+                    "debug_method": result.get("method", "MISSING"),
         }
         
         if result.get('angle_warning'):
