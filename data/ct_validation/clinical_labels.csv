@@ -1,39 +1,41 @@
-filename,lateral_deviation,septal_angle,bridge_straightness,classification,source,confidence,notes
-patient1_severe.png,0.00977,0.755,0.00160,severe,Dr. Markarian,HIGH,Clinical assessment
-patient4_severe.png,0.01347,1.045,0.00132,severe,Dr. Markarian,HIGH,Clinical assessment
-patient3_severe.jpg,0.01624,1.496,0.00206,severe,Dr. Markarian,HIGH,Clinical assessment
-patient6_moderate.png,0.00736,0.655,0.00054,moderate,Dr. Markarian,HIGH,Clinical assessment - relabeled from mild to moderate
-patient7_severe.png,0.00808,2.519,0.00143,severe,Dr. Markarian,HIGH,Clinical assessment
-patient8_moderate.png,0.00439,1.001,0.00111,moderate,Dr. Markarian,HIGH,Clinical assessment
-patient9_moderate.png,0.00245,1.1336,0.00101,moderate,Dr. Markarian,HIGH,Clinical assessment
-presurgery_stadium.png,0.15260,11.170,0.00729,severe,Surgical ground truth,HIGH,Developer own case confirmed by surgery
-presurgery_school.png,0.03440,1.793,0.00126,severe,Surgical ground truth,HIGH,Developer own case confirmed by surgery
-postsurgery_img4564.png,0.00240,0.888,0.00069,normal,Surgical ground truth,HIGH,Developer own case confirmed by surgery
-postsurgery_img4709.png,0.02940,2.123,0.00118,normal,Surgical ground truth,HIGH,Developer own case confirmed by surgery
-friend1_normal.png,0.00230,0.888,0.00069,normal,Visual estimate,MEDIUM,Friend with visually straight nose
-friend2_normal.png,0.00240,0.890,0.00070,normal,Visual estimate,MEDIUM,Friend with visually straight nose
-calibration_photo3.jpeg,0.01770,0.546,0.00190,normal,User estimate,LOW,Rough estimate
-calibration_photo4.jpeg,0.00260,1.402,0.00091,normal,User estimate,LOW,Rough estimate
-fresh_normal_4719.png,0.01349,0.091,0.00070,normal,Repeated consistency test,HIGH,Same known-normal person tested 5x
-fresh_normal_4720.png,0.01313,0.010,0.00093,normal,Repeated consistency test,HIGH,Same known-normal person tested 5x
-fresh_normal_4721.png,0.00919,0.556,0.00082,normal,Repeated consistency test,HIGH,Same known-normal person tested 5x
-fresh_normal_4722.png,0.00220,0.806,0.00082,normal,Repeated consistency test,HIGH,Same known-normal person tested 5x
-fresh_normal_4723.png,0.00288,1.089,0.00096,normal,Repeated consistency test,HIGH,Same known-normal person tested 5x
-screenshot_9.51.12pm.png,0.03654,1.6318,0.00109,severe,Surgical ground truth,HIGH,Developer own pre-surgery photo
-screenshot_4.29.42pm.png,0.00808,2.3669,0.00143,severe,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.32.20pm.png,0.00525,0.6475,0.00071,moderate,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.39.40pm.png,0.01262,0.1901,0.00082,severe,Dr. Markarian,HIGH,Clinical assessment - KNOWN AMBIGUOUS: measurements overlap with normal cases; model may misclassify this despite correct label
-screenshot_5.57.16pm.png,0.02428,2.2199,0.00217,severe,Dr. Markarian,HIGH,Clinical assessment
-screenshot_9.16.52pm.png,0.01658,0.4898,0.00171,severe,Dr. Markarian,HIGH,Clinical assessment
-image_3-25-26.jpg,0.01624,1.4059,0.00206,severe,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.41.01pm.png,0.01504,0.9862,0.00162,severe,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.48.34pm.png,0.01449,0.0376,0.00135,normal,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.03.15pm.png,0.01185,1.6088,0.00077,mild,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.57.56pm.png,0.00345,0.0402,0.00089,mild,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.47.47pm.png,0.00196,0.9681,0.00122,normal,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.50.06pm.png,0.00665,1.1611,0.00092,normal,Dr. Markarian,HIGH,Clinical assessment
-screenshot_5.49.19pm.png,0.02548,1.1591,0.00201,normal,Dr. Markarian,HIGH,Clinical assessment
-screenshot_6.26.03pm.png,0.02225,0.6178,0.00081,moderate,Dr. Markarian,HIGH,Clinical assessment
-screenshot_6.26.27pm.png,0.01114,1.0431,0.00108,moderate,Dr. Markarian,HIGH,Clinical assessment
-screenshot_4.30.33pm.png,0.00439,0.9410,0.00111,moderate,Dr. Markarian,HIGH,Clinical assessment
-photo1_moderate.png,0.00223,1.524,0.00081,moderate,Dr. Markarian,HIGH,Clinical assessment - KNOWN AMBIGUOUS: model predicts normal despite correct label; measurements overlap with normal cases even when included in training
+filename,lateral_deviation,septal_angle,bridge_straightness,classification,expected_score_min,expected_score_max,source,confidence,notes
+photo1.png,0.00223,1.524,0.00081,moderate,40,65,Dr. Markarian,HIGH,Clinical assessment - KNOWN AMBIGUOUS: model predicts normal despite correct label and being in training data; measurements overlap with normal cases
+photo2.png,,,,severe,55,85,Dr. Markarian,MEDIUM,Original metadata entry - measurements not re-verified with stable detector
+photo3.jpeg,0.01770,0.546,0.00190,normal,0,25,User estimate,LOW,Rough estimate
+photo4.jpeg,0.00260,1.402,0.00091,normal,0,25,User estimate,LOW,Rough estimate
+photo5.jpg,,,,severe,55,85,User estimate,LOW,Original metadata entry - measurements not re-verified
+patient1_severe.png,0.00977,0.755,0.00160,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+patient3_severe.jpg,0.01624,1.496,0.00206,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+patient4_severe.png,0.01347,1.045,0.00132,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+presurgery_stadium.png,0.15260,11.170,0.00729,severe,80,90,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+presurgery_school.png,0.03440,1.793,0.00126,severe,65,80,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+postsurgery_img4564.png,0.00240,0.888,0.00069,normal,0,20,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+postsurgery_img4709.png,0.02940,2.123,0.00118,normal,0,25,Surgical ground truth,HIGH,Developer own case confirmed by surgery
+patient6_moderate.png,0.00736,0.655,0.00054,moderate,45,65,Dr. Markarian,HIGH,Clinical assessment
+patient7_severe.png,0.00808,2.519,0.00143,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+patient8_moderate.png,0.00439,1.001,0.00111,moderate,45,65,Dr. Markarian,HIGH,Clinical assessment
+patient9_moderate.png,0.00245,1.1336,0.00101,moderate,45,65,Dr. Markarian,HIGH,Clinical assessment
+friend1_normal.png,0.00230,0.888,0.00069,normal,0,25,Visual estimate,MEDIUM,Friend with visually straight nose
+friend2_normal.png,0.00240,0.890,0.00070,normal,0,25,Visual estimate,MEDIUM,Friend with visually straight nose
+fresh_normal_4719.png,0.01349,0.091,0.00070,normal,0,25,Repeated consistency test,HIGH,Same known-normal person tested 5x
+fresh_normal_4720.png,0.01313,0.010,0.00093,normal,0,25,Repeated consistency test,HIGH,Same known-normal person tested 5x
+fresh_normal_4721.png,0.00919,0.556,0.00082,normal,0,25,Repeated consistency test,HIGH,Same known-normal person tested 5x
+fresh_normal_4722.png,0.00220,0.806,0.00082,normal,0,25,Repeated consistency test,HIGH,Same known-normal person tested 5x
+fresh_normal_4723.png,0.00288,1.089,0.00096,normal,0,25,Repeated consistency test,HIGH,Same known-normal person tested 5x
+screenshot_9.51.12pm.png,0.03654,1.6318,0.00109,severe,65,85,Surgical ground truth,HIGH,Developer own pre-surgery photo
+screenshot_4.29.42pm.png,0.00808,2.3669,0.00143,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.32.20pm.png,0.00525,0.6475,0.00071,moderate,45,65,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.39.40pm.png,0.01262,0.1901,0.00082,severe,65,85,Dr. Markarian,HIGH,Clinical assessment - KNOWN AMBIGUOUS: measurements overlap with normal cases; model misclassifies despite correct label
+screenshot_5.57.16pm.png,0.02428,2.2199,0.00217,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+screenshot_9.16.52pm.png,0.01658,0.4898,0.00171,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+image_3-25-26.jpg,0.01624,1.4059,0.00206,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.41.01pm.png,0.01504,0.9862,0.00162,severe,65,85,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.48.34pm.png,0.01449,0.0376,0.00135,normal,0,25,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.03.15pm.png,0.01185,1.6088,0.00077,mild,25,45,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.57.56pm.png,0.00345,0.0402,0.00089,mild,25,45,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.47.47pm.png,0.00196,0.9681,0.00122,normal,0,25,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.50.06pm.png,0.00665,1.1611,0.00092,normal,0,25,Dr. Markarian,HIGH,Clinical assessment
+screenshot_5.49.19pm.png,0.02548,1.1591,0.00201,normal,0,25,Dr. Markarian,HIGH,Clinical assessment
+screenshot_6.26.03pm.png,0.02225,0.6178,0.00081,moderate,45,65,Dr. Markarian,HIGH,Clinical assessment
+screenshot_6.26.27pm.png,0.01114,1.0431,0.00108,moderate,45,65,Dr. Markarian,HIGH,Clinical assessment
+screenshot_4.30.33pm.png,0.00439,0.9410,0.00111,moderate,45,65,Dr. Markarian,HIGH,Clinical assessment
