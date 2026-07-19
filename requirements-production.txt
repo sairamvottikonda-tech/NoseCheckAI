@@ -17,5 +17,5 @@ python-dotenv>=1.0.0
 
 # Excluded for memory: pandas, scipy, matplotlib, seaborn, scikit-learn
 # (used only in calibration scripts, not web pipeline)
-scikit-learn==1.8.0
+scikit-learn>=1.3.0,<1.7.0
 pillow-heif>=0.13.0
