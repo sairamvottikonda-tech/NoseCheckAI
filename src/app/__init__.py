@@ -52,7 +52,7 @@ def run_pipeline(image_path):
     """
     from src.image_processing.image_loader import load_image
     from src.image_processing.preprocessor import preprocess
-    from src.landmark_detection.detector import detect_landmarks
+    from src.landmark_detection.stable_detector import detect_landmarks_stable
     from src.measurement.asymmetry_calculator import calculate
     from src.measurement.angle_detection import detect_camera_tilt, compensate_for_tilt, get_angle_warning
     from src.scoring.ml_score_calculator import ml_calculate_score as calculate_score
@@ -62,7 +62,7 @@ def run_pipeline(image_path):
         return None
 
     processed = preprocess(image)
-    landmarks = detect_landmarks(processed)
+    landmarks, _confidence = detect_landmarks_stable(processed)
 
     if landmarks is None and image.shape[0] > 0:
         h, w = image.shape[:2]
@@ -75,7 +75,7 @@ def run_pipeline(image_path):
             fallback = cv2.resize(image, (new_w, new_h))
         else:
             fallback = image
-        landmarks = detect_landmarks(fallback)
+        landmarks, _confidence = detect_landmarks_stable(fallback)
 
     if landmarks is not None:
         tilt_info = detect_camera_tilt(landmarks)
@@ -303,14 +303,14 @@ def debug_measurements():
     try:
         from src.image_processing.image_loader import load_image
         from src.image_processing.preprocessor import preprocess
-        from src.landmark_detection.detector import detect_landmarks
+        from src.landmark_detection.stable_detector import detect_landmarks_stable
         from src.measurement.asymmetry_calculator import calculate
         from src.measurement.angle_detection import detect_camera_tilt, compensate_for_tilt
         image = load_image(tmp_path)
         if image is None:
             return _j.dumps({"error": "failed"}), 400
         processed = preprocess(image)
-        landmarks = detect_landmarks(processed) or detect_landmarks(image)
+        landmarks, _confidence = detect_landmarks_stable(processed) or detect_landmarks(image)
         if landmarks is None:
             return _j.dumps({"error": "no face"}), 400
         tilt = detect_camera_tilt(landmarks)
