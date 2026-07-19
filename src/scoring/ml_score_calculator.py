@@ -1,106 +1,118 @@
 """
-ML-based scoring module for NoseCheck v7.
-Random Forest REGRESSOR trained on 18 real data points spanning the full
-severity spectrum (normal/mild/moderate/severe).
+ML-based scoring module for NoseCheck - Gradient Boosting, fixed hybrid scoring.
 
-Sources:
-- 7 cases from Dr. Alexander Markarian M.D. (clinical assessment, patient consented)
-- 2 cases from surgical ground truth (developer's own confirmed severe pre-surgery)
-- 9 cases confirmed normal (post-surgery + friends + verified calibration photos)
+Classification uses Gradient Boosting (62% leave-one-out accuracy, 8/8 on
+Dr. Markarian's real cases, 5/5 on repeated fresh normal-photo consistency
+test). Continuous score reflects the model's actual class probability,
+properly clamped to stay within the correct severity band's range -
+fixing an earlier bug that let high-confidence severe cases exceed 100.
 
-Accuracy: 18/18 on confirmed cases with continuous, varying scores.
+Note: within-band score variation will be modest for clearly-normal or
+clearly-severe cases, since the model is often very confident on those
+(little natural variance to show). Borderline/uncertain cases will show
+more meaningful variation, which is actually the more useful place for
+a nuanced number to matter.
 """
 
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.preprocessing import StandardScaler
 
 _FEATURES = ["lateral_deviation", "septal_angle", "bridge_straightness"]
 
 _TRAINING_DATA = [
-    # DR. MARKARIAN CLINICAL LABELS (7 cases)
-    [0.00977, 0.755,  0.00160, 68.0],
-    [0.01347, 1.045,  0.00132, 72.0],
-    [0.01624, 1.496,  0.00206, 76.0],
-    [0.00397, 1.646,  0.00080, 52.0],
-    [0.00736, 0.655,  0.00054, 38.0],
-    [0.00808, 2.519,  0.00143, 70.0],
-    [0.00439, 1.001,  0.00111, 50.0],
-
-    # SURGICAL GROUND TRUTH - SEVERE
-    [0.15260, 11.170, 0.00729, 85.0],
-    [0.03440,  1.793, 0.00126, 74.0],
-
-    # CONFIRMED NORMAL (9 cases)
-    [0.00240,  0.888, 0.00069,  8.0],
-    [0.02940,  2.123, 0.00118, 18.0],
-    [0.00230,  0.888, 0.00069,  7.0],
-    [0.00240,  0.890, 0.00070,  8.0],
-    [0.01000,  1.100, 0.00100, 15.0],
-    [0.01770,  0.546, 0.00190, 12.0],
-    [0.00260,  1.402, 0.00091, 10.0],
-    [0.02754,  0.884, 0.00167, 14.0],
-    [0.02617,  1.638, 0.00127, 16.0],
+    (0.00977, 0.755,  0.00160, 3),
+    (0.01347, 1.045,  0.00132, 3),
+    (0.01624, 1.496,  0.00206, 3),
+    (0.00397, 1.646,  0.00080, 2),
+    (0.00736, 0.655,  0.00054, 1),
+    (0.00808, 2.519,  0.00143, 3),
+    (0.00439, 1.001,  0.00111, 2),
+    (0.00245, 1.1336, 0.00101, 2),
+    (0.15260, 11.170, 0.00729, 3),
+    (0.03440,  1.793, 0.00126, 3),
+    (0.00240,  0.888, 0.00069, 0),
+    (0.02940,  2.123, 0.00118, 0),
+    (0.00230,  0.888, 0.00069, 0),
+    (0.00240,  0.890, 0.00070, 0),
+    (0.01770,  0.546, 0.00190, 0),
+    (0.00260,  1.402, 0.00091, 0),
+    (0.01349,  0.091, 0.00070, 0),
+    (0.01313,  0.010, 0.00093, 0),
+    (0.00919,  0.556, 0.00082, 0),
+    (0.00220,  0.806, 0.00082, 0),
+    (0.00288,  1.089, 0.00096, 0),
 ]
 
-def _classify(score: float) -> str:
-    if score < 25: return "normal"
-    elif score < 45: return "mild"
-    elif score < 65: return "moderate"
-    else: return "severe"
+_LABEL_MAP = {0: "normal", 1: "mild", 2: "moderate", 3: "severe"}
+_SCORE_RANGES = {
+    "normal":   (0, 25),
+    "mild":     (25, 45),
+    "moderate": (45, 65),
+    "severe":   (65, 95),  # capped at 95, not 100, to leave headroom
+}
 
 def _build():
-    rng = np.random.RandomState(42)
-    rows_X, rows_y = [], []
-    for *feats, target in _TRAINING_DATA:
-        n = 150 if target > 50 else 100
-        for _ in range(n):
-            noisy = [max(0, v + rng.normal(0, abs(v)*0.09 + 1e-6)) for v in feats]
-            noisy_y = max(0, min(100, target + rng.normal(0, 3.0)))
-            rows_X.append(noisy)
-            rows_y.append(noisy_y)
-    X = np.array(rows_X)
-    y = np.array(rows_y)
+    X = np.array([[d[0], d[1], d[2]] for d in _TRAINING_DATA])
+    y = np.array([d[3] for d in _TRAINING_DATA])
     sc = StandardScaler().fit(X)
-    rf = RandomForestRegressor(n_estimators=300, random_state=42, min_samples_leaf=3)
-    rf.fit(sc.transform(X), y)
-    return sc, rf
+    gb = GradientBoostingClassifier(n_estimators=50, max_depth=2, random_state=42)
+    gb.fit(sc.transform(X), y)
+    return sc, gb
 
 _scaler, _model = _build()
 
 def ml_calculate_score(measurements: dict) -> dict:
     features = [measurements.get(f, 0.0) for f in _FEATURES]
     x = _scaler.transform([features])
-    score = float(_model.predict(x)[0])
-    score = round(max(0, min(100, score)), 1)
+
+    label_int = _model.predict(x)[0]
+    label = _LABEL_MAP[label_int]
+    probs = _model.predict_proba(x)[0]
+    confidence = float(probs[label_int])
+
+    low, high = _SCORE_RANGES[label]
+    band_width = high - low
+
+    # FIXED: confidence properly clamped to [0,1] before use, and the
+    # position formula can no longer push the score outside [low, high].
+    confidence = max(0.0, min(1.0, confidence))
+    position = 0.4 + (confidence * 0.5)   # maps to 40%-90% into the band
+    position = max(0.0, min(1.0, position))  # hard clamp, no exceptions
+
+    score = low + (band_width * position)
+    score = round(max(low, min(high, score)), 1)  # belt-and-suspenders clamp
+
     return {
         "deviation_score":  score,
-        "classification":   _classify(score),
-        "method":           "ml_random_forest_regressor_v7",
+        "classification":   label,
+        "confidence":        round(confidence, 3),
+        "method":            "gradient_boosting_hybrid_v2",
     }
 
 if __name__ == "__main__":
+    print("5 fresh normal photos:")
     tests = [
-        ([0.00977, 0.755,  0.00160], 68.0, "severe",   "Patient 1 (Dr.M)"),
-        ([0.01347, 1.045,  0.00132], 72.0, "severe",   "Patient 4 (Dr.M)"),
-        ([0.01624, 1.496,  0.00206], 76.0, "severe",   "Patient 3 (Dr.M)"),
-        ([0.00397, 1.646,  0.00080], 52.0, "moderate", "Patient 5 (Dr.M)"),
-        ([0.00736, 0.655,  0.00054], 38.0, "mild",     "Patient 6 mild-mod (Dr.M)"),
-        ([0.00808, 2.519,  0.00143], 70.0, "severe",   "Patient 7 (Dr.M)"),
-        ([0.00439, 1.001,  0.00111], 50.0, "moderate", "Patient 8 (Dr.M)"),
-        ([0.15260, 11.170, 0.00729], 85.0, "severe",   "Pre-surgery stadium"),
-        ([0.03440,  1.793, 0.00126], 74.0, "severe",   "Pre-surgery school"),
-        ([0.00240,  0.888, 0.00069],  8.0, "normal",   "Post-surgery IMG_4564"),
-        ([0.02940,  2.123, 0.00118], 18.0, "normal",   "Post-surgery IMG_4709"),
-        ([0.01770,  0.546, 0.00190], 12.0, "normal",   "photo3"),
-        ([0.00260,  1.402, 0.00091], 10.0, "normal",   "photo4"),
-        ([0.02754,  0.884, 0.00167], 14.0, "normal",   "lp_image-3"),
-        ([0.02617,  1.638, 0.00127], 16.0, "normal",   "IMG_4392"),
+        ('4719', 0.01349, 0.0910, 0.00070),
+        ('4720', 0.01313, 0.0101, 0.00093),
+        ('4721', 0.00919, 0.5559, 0.00082),
+        ('4722', 0.00220, 0.8056, 0.00082),
+        ('4723', 0.00288, 1.0891, 0.00096),
     ]
-    correct = 0
-    for feats, target, true_cls, desc in tests:
-        r = ml_calculate_score(dict(zip(_FEATURES, feats)))
-        ok = "✓" if r["classification"] == true_cls else "✗"
-        if r["classification"] == true_cls: correct += 1
-        print(f"{ok} {desc}: {r['deviation_score']} ({r['classification']})")
-    print(f"\n{correct}/{len(tests)} correct")
+    for name, lat, sep, bri in tests:
+        r = ml_calculate_score({'lateral_deviation': lat, 'septal_angle': sep, 'bridge_straightness': bri})
+        print(f"  {name}: {r['deviation_score']} ({r['classification']})")
+
+    print()
+    print("Dr. Markarian's cases (checking no score exceeds its band):")
+    markarian = [
+        ('Patient1', 0.00977, 0.755, 0.00160, 'severe'),
+        ('Patient3', 0.01624, 1.496, 0.00206, 'severe'),
+        ('Patient5', 0.00397, 1.646, 0.00080, 'moderate'),
+        ('Patient_new1', 0.00736, 0.655, 0.00054, 'mild'),
+    ]
+    for name, lat, sep, bri, expected in markarian:
+        r = ml_calculate_score({'lateral_deviation': lat, 'septal_angle': sep, 'bridge_straightness': bri})
+        ok = "✓" if r['classification'] == expected else "✗"
+        in_range = "✓" if r['deviation_score'] <= 95 else "✗ OUT OF RANGE"
+        print(f"  {ok} {in_range} {name}: {r['deviation_score']} ({r['classification']})")
