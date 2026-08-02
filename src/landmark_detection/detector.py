@@ -76,6 +76,7 @@ def _get_face_landmarker():
             base_options=base_options,
             running_mode=VisionRunningMode.IMAGE,
             num_faces=1,
+            output_facial_transformation_matrixes=True,
             min_face_detection_confidence=LANDMARK_CONFIG.get(
                 "min_detection_confidence", 0.5
             ),
