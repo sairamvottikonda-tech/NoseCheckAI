@@ -145,3 +145,24 @@ def nostril_width(outer, inner):
         Width in pixels.
     """
     return abs(outer[0] - inner[0])
+def glabella_menton_midline(glabella, menton, at_y=None):
+    """
+    Midline x-coordinate from the glabella->menton line.
+
+    Args:
+        glabella: (x, y) landmark 9
+        menton:   (x, y) landmark 152
+        at_y:     optional image row at which to evaluate the line. If
+                  omitted, returns the glabella x (vertical approximation).
+
+    Returns:
+        x-coordinate of the midline.
+    """
+    gx, gy = float(glabella[0]), float(glabella[1])
+    mx, my = float(menton[0]), float(menton[1])
+
+    if at_y is None or abs(my - gy) < 1e-9:
+        return gx
+
+    t = (float(at_y) - gy) / (my - gy)
+    return gx + t * (mx - gx)

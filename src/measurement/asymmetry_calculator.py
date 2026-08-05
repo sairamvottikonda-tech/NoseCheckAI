@@ -27,6 +27,7 @@ from src.measurement.geometry_utils import (
     distance_to_midline,
     facial_midline,
     robust_facial_midline,
+    glabella_menton_midline,
     nostril_width,
 )
 
@@ -115,11 +116,17 @@ def calculate(landmarks: dict) -> dict:
     # Lateral deviation: distance from nose tip to midline (normalized by face width)
     # Uses eye-corner + face-edge averaged midline when eye landmarks are present,
     # which is much less sensitive to small head tilts than face-edges alone.
-    midline_x = robust_facial_midline(
-        left_face, right_face,
-        landmarks.get("left_eye_outer"), landmarks.get("right_eye_outer"),
-        landmarks.get("left_eye_inner"), landmarks.get("right_eye_inner"),
-    )
+    if landmarks.get("glabella") is not None and landmarks.get("menton") is not None:
+        midline_x = glabella_menton_midline(
+            landmarks["glabella"], landmarks["menton"],
+            at_y=landmarks["nose_tip"][1],
+        )
+    else:
+        midline_x = robust_facial_midline(
+            left_face, right_face,
+            landmarks.get("left_eye_outer"), landmarks.get("right_eye_outer"),
+            landmarks.get("left_eye_inner"), landmarks.get("right_eye_inner"),
+        )
     tip = landmarks["nose_tip"]
     lateral_px = abs(distance_to_midline(tip, midline_x))
     lateral_deviation = lateral_px / face_width if MEASUREMENT_CONFIG.get("normalize_by_face_width", True) else lateral_px
