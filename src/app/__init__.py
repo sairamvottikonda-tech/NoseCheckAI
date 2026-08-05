@@ -100,9 +100,7 @@ def run_pipeline(image_path):
                     _np.array(_res.facial_transformation_matrixes[0]),
                     _w, _h)
                 if _r.get('status') == 'measured':
-                    _cls, _score = _BAND_COMPAT[_r['band']]
-                    _r['classification'] = _cls
-                    _r['deviation_score'] = _score
+                    _r['classification'] = _r['descriptor']
                     _r['analysis_method'] = 'dorsal_offset'
                     result = _r
                 elif _r.get('status') == 'rejected':
