@@ -56,6 +56,11 @@ def run_pipeline(image_path):
     from src.measurement.asymmetry_calculator import calculate
     from src.measurement.angle_detection import detect_camera_tilt, compensate_for_tilt, get_angle_warning
     from src.scoring.ml_score_calculator import ml_calculate_score as calculate_score
+    from src.scoring.scorer import score_photo
+    from src.landmark_detection.detector import _get_face_landmarker
+    import mediapipe as _mp
+    import cv2 as _cv2
+    import numpy as _np
 
     image = load_image(image_path)
     if image is None:
@@ -78,16 +83,45 @@ def run_pipeline(image_path):
         landmarks, _confidence = detect_landmarks_stable(fallback)
 
     if landmarks is not None:
-        tilt_info = detect_camera_tilt(landmarks)
-        measurements = calculate(landmarks)
+        _BAND_COMPAT = {
+            'marked external deviation':    ('moderate', 55.0),
+            'borderline':                   ('mild',     35.0),
+            'no marked external deviation': ('normal',   12.0),
+        }
+        result = None
+        try:
+            _rgb = _cv2.cvtColor(processed, _cv2.COLOR_BGR2RGB)
+            _res = _get_face_landmarker().detect(
+                _mp.Image(image_format=_mp.ImageFormat.SRGB, data=_rgb))
+            if _res.face_landmarks and _res.facial_transformation_matrixes:
+                _h, _w = processed.shape[:2]
+                _r = score_photo(
+                    _res.face_landmarks[0],
+                    _np.array(_res.facial_transformation_matrixes[0]),
+                    _w, _h)
+                if _r.get('status') == 'measured':
+                    _cls, _score = _BAND_COMPAT[_r['band']]
+                    _r['classification'] = _cls
+                    _r['deviation_score'] = _score
+                    _r['analysis_method'] = 'dorsal_offset'
+                    result = _r
+                elif _r.get('status') == 'rejected':
+                    _r['classification'] = 'inconclusive'
+                    _r['deviation_score'] = None
+                    _r['analysis_method'] = 'dorsal_offset'
+                    result = _r
+        except Exception:
+            result = None
 
-        if not tilt_info['is_frontal']:
-            measurements = compensate_for_tilt(measurements, tilt_info)
-
-        result = calculate_score(measurements)
-        result['camera_angle'] = tilt_info
-        result['angle_warning'] = get_angle_warning(tilt_info)
-        result['analysis_method'] = 'landmark'
+        if result is None:
+            tilt_info = detect_camera_tilt(landmarks)
+            measurements = calculate(landmarks)
+            if not tilt_info['is_frontal']:
+                measurements = compensate_for_tilt(measurements, tilt_info)
+            result = calculate_score(measurements)
+            result['camera_angle'] = tilt_info
+            result['angle_warning'] = get_angle_warning(tilt_info)
+            result['analysis_method'] = 'landmark_legacy'
     else:
         from src.measurement.contour_analyzer import analyze_contour
         contour_metrics = analyze_contour(image)
@@ -146,8 +180,14 @@ def upload():
                     return jsonify({"error": "Could not detect nose in image. Please upload a clear frontal photo of a face or nose model."}), 400
                 
                 response = {
-                    "deviation_score": result["deviation_score"],
-                    "classification": result["classification"],
+                    "deviation_score": result.get("deviation_score"),
+                    "classification": result.get("classification", "normal"),
+                    "band": result.get("band"),
+                    "offset": result.get("offset"),
+                    "inconclusive": result.get("inconclusive", False),
+                    "status": result.get("status", "measured"),
+                    "disclaimer": result.get("disclaimer"),
+                    "retake_message": result.get("message"),
                     "metrics": result.get("raw_metrics", {}),
                     "analysis_method": result.get("analysis_method", "landmark"),
                     "debug_method": result.get("method", "MISSING"),
@@ -197,8 +237,14 @@ def analyze():
             return jsonify({"error": "Could not detect nose in image. Please upload a clear frontal photo of a face or nose model."}), 400
         
         response = {
-            "deviation_score": result["deviation_score"],
-            "classification": result["classification"],
+            "deviation_score": result.get("deviation_score"),
+            "classification": result.get("classification", "normal"),
+            "band": result.get("band"),
+            "offset": result.get("offset"),
+            "inconclusive": result.get("inconclusive", False),
+            "status": result.get("status", "measured"),
+            "disclaimer": result.get("disclaimer"),
+            "retake_message": result.get("message"),
             "metrics": result.get("raw_metrics", {}),
             "analysis_method": result.get("analysis_method", "landmark"),
                     "debug_method": result.get("method", "MISSING"),
