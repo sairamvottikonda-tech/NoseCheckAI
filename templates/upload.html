@@ -173,6 +173,13 @@
             var score = data.deviation_score;
             var cls = data.classification;
 
+            if (data.status === 'rejected' || score === null || score === undefined) {
+                showError(data.retake_message || 'This photo could not be measured reliably. Please retake it facing the camera directly.');
+                loadingOverlay.classList.remove('visible');
+                analyzeBtn.disabled = false;
+                return;
+            }
+
             resultScore.textContent = score.toFixed(1);
             resultClassification.textContent = cls.charAt(0).toUpperCase() + cls.slice(1);
             analysisResult.className = 'analysis-result visible severity-' + cls;

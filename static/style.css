@@ -552,3 +552,202 @@ footer {
   .header, footer, .btn, .step-progress { display: none; }
   .card { box-shadow: none; border: 1px solid #ddd; }
 }
+
+/* ============================================================
+   Two-part result page: symptom score and photo measurement
+   reported separately. Uses existing tokens throughout.
+   ============================================================ */
+
+.result-container {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.result-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 640px) {
+  .result-pair { grid-template-columns: 1fr; }
+}
+
+.result-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.result-panel h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-sm);
+}
+
+.result-number {
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.result-number.unavailable {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-light);
+  padding: 0.9rem 0;
+}
+
+.result-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  margin-top: 0.15rem;
+}
+
+/* Severity colours, reusing the existing palette */
+.result-panel.severity-normal   .result-label { color: var(--color-normal); }
+.result-panel.severity-mild     .result-label { color: #b45309; }
+.result-panel.severity-moderate .result-label { color: #c2410c; }
+.result-panel.severity-severe   .result-label,
+.result-panel.severity-extreme  .result-label { color: var(--color-severe); }
+
+.result-panel.severity-normal   { border-top: 3px solid var(--color-normal); }
+.result-panel.severity-mild     { border-top: 3px solid var(--color-mild); }
+.result-panel.severity-moderate { border-top: 3px solid var(--color-moderate); }
+.result-panel.severity-severe,
+.result-panel.severity-extreme  { border-top: 3px solid var(--color-severe); }
+
+/* Scale bar showing where the score sits in its range */
+.result-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-light);
+  margin: var(--space-md) 0 var(--space-sm);
+  overflow: visible;
+}
+
+.result-bar-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--text-light);
+  transition: width 0.4s ease;
+}
+
+.severity-normal   .result-bar-fill { background: var(--color-normal); }
+.severity-mild     .result-bar-fill { background: var(--color-mild); }
+.severity-moderate .result-bar-fill { background: var(--color-moderate); }
+.severity-severe   .result-bar-fill,
+.severity-extreme  .result-bar-fill { background: var(--color-severe); }
+
+/* Uncertainty band -- the photo measurement varies ~8 points between
+   two photos of the same person, and the UI should show that */
+.result-bar-uncertainty {
+  position: absolute;
+  top: -2px;
+  height: 10px;
+  background: rgba(100, 116, 139, 0.22);
+  border-radius: 2px;
+}
+
+.result-source {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-light);
+  margin: auto 0 0;
+  padding-top: var(--space-sm);
+}
+
+/* Interpretation */
+.interpretation {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  padding: var(--space-md) var(--space-lg);
+  font-size: 0.97rem;
+  line-height: 1.65;
+  color: var(--text);
+  margin-bottom: var(--space-lg);
+}
+
+.interpretation:empty { display: none; }
+
+/* Supplementary symptoms */
+.supplementary {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.supplementary:empty { display: none; }
+
+.supplementary h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-sm);
+}
+
+.supplementary ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.supplementary li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 0.45rem 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.supplementary li:last-child { border-bottom: none; }
+
+/* Disclaimer */
+.disclaimer {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-light);
+  background: var(--border-light);
+  border-radius: 8px;
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+/* Questionnaire: instrument label above each question group */
+.instrument-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.instrument-tag.supplementary-tag {
+  background: var(--border-light);
+  color: var(--text-muted);
+}
