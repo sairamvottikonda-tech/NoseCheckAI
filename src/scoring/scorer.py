@@ -60,14 +60,22 @@ def offset_to_score(offset: float) -> float:
 
 
 def _descriptor(score: float) -> str:
-    """Coarse descriptor. NOT a clinical grade -- see module docstring."""
+    """
+    Severity label from the continuous score.
+
+    NOTE: four-class agreement with clinical grading tested at chance on
+    35 graded photos. The SCORE is validated (rho=+0.609 vs grade); these
+    LABELS are thresholds on that score, not reproductions of a clinician's
+    grade. Severe vs not-severe was 86% accurate; the mild/moderate
+    boundary is not reliable.
+    """
     if score >= 75:
-        return "marked"
+        return "severe"
     if score >= 55:
         return "moderate"
     if score >= 35:
-        return "slight"
-    return "minimal"
+        return "mild"
+    return "normal"
 
 
 def score_photo(face_landmarks, transformation_matrix,
