@@ -90,11 +90,10 @@ def run_pipeline(image_path):
         }
         result = None
         try:
-            _rgb = _cv2.cvtColor(processed, _cv2.COLOR_BGR2RGB)
-            _res = _get_face_landmarker().detect(
-                _mp.Image(image_format=_mp.ImageFormat.SRGB, data=_rgb))
-            if _res.face_landmarks and _res.facial_transformation_matrixes:
-                _h, _w = processed.shape[:2]
+            from src.measurement.roll_normalize import normalize_roll
+            _rotated, _res = normalize_roll(processed, _get_face_landmarker())
+            if _res is not None and _res.face_landmarks and _res.facial_transformation_matrixes:
+                _h, _w = _rotated.shape[:2]
                 _r = score_photo(
                     _res.face_landmarks[0],
                     _np.array(_res.facial_transformation_matrixes[0]),
