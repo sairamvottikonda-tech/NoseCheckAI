@@ -1,247 +1,135 @@
-# NoseCheck - DNS Screening Tool
+# NoseCheckAI
 
-A Python-based system for detecting nasal asymmetry using smartphone photos and symptom assessment.
+A screening aid that estimates external nasal asymmetry from a smartphone photo, paired with a symptom questionnaire. Built out of a real septoplasty case, developed with a board-certified facial plastic surgeon (Dr. Alexander Markarian, USC), and validated honestly rather than assumed to work.
 
-🔗 Try it live → nosecheckai-v2.onrender.com
+🔗 **Live app:** [nosecheckai-v2.onrender.com](https://nosecheckai-v2.onrender.com)
 
-## Project Overview
+---
 
-NoseCheck is a research project that aims to detect Deviated Nasal Septum (DNS) using:
-1. **Computer Vision Analysis**: Automated facial landmark detection and nasal asymmetry measurements
-2. **Symptom Assessment**: Self-reported symptom questionnaire
-3. **Calibration System**: Validated against 3D-printed models with known deviations
+## What this actually is
 
-📸 How It Works
+This is not a diagnostic tool, and the app says so on every screen. It measures one thing: how far your nasal bridge sits from your facial midline in a frontal photo. That measurement was validated against 35 clinician-graded photos and holds up under real statistical scrutiny — but it has real, documented limits, and this README states them plainly rather than burying them.
 
-Upload a frontal face photo → answer a short symptom questionnaire → get a deviation score with severity classification (Normal / Mild / Moderate / Severe).
+**What it can do:** flag photos with marked external deviation, with high specificity (96% — it rarely flags someone incorrectly).
 
-Photo Upload  →  MediaPipe Face Landmarks  →  Asymmetry Metrics  →  Deviation Score  →  Result
+**What it can't do:** grade severity on a four-level scale (mild/moderate/severe testing performed no better than chance), or see internal septal deviation, which is what actually drives most clinical diagnoses and requires an in-person exam or CT scan.
 
-## Features
+---
 
-- Automated facial landmark detection using MediaPipe
-- Quantitative nasal asymmetry measurements
-- Multi-metric deviation scoring system
-- Symptom questionnaire integration
-- Calibration with 3D-printed reference models
-- Statistical analysis and visualization
-- Mobile-friendly web interface
+## The measurement
 
-## Project Structure
+Fourteen different computer-vision approaches were tested against clinician-graded photos over the course of development — landmark geometry, dorsal curvature, mirror symmetry, shadow analysis, spectral features, direct pixel-intensity ridge tracking. Thirteen returned no meaningful signal. One did:
+
+**Dorsal offset from the intercanthal–philtrum midline.**
+
+- A reference line is drawn from the midpoint of the inner eye corners to the philtrum — both points independent of nose shape, so a deviated nose can't pull its own reference line toward itself.
+- Seven points along the nasal bridge are each measured for perpendicular distance from that line.
+- The largest of those distances, normalized by interocular distance, is the score.
+
+No model, no training data, no learned weights — it's geometry. That matters: every classifier tested (logistic regression, random forest, gradient boosting, SVM, k-NN, naive Bayes, Gaussian process, ordinal regression) performed at or below chance on four-class grading, because the underlying data genuinely contains contradictory labels at near-identical measurements. A fitted model would just memorize noise. This measurement doesn't try to do more than the data supports.
+
+### Validation, honestly reported
+
+| Metric | Result |
+|---|---|
+| Rank correlation with clinical grade (all data, n=35) | ρ = 0.61, p = 0.0001 |
+| Rank correlation, leave-one-out (unseen photos) | ρ = 0.49, p = 0.003 |
+| Severe vs. non-severe accuracy | 86% |
+| Sensitivity | 56% — misses roughly half of clinically severe cases |
+| Specificity | 96% — rarely flags a normal nose incorrectly |
+| Within-subject reproducibility (5 repeat photos, same person) | ±0.0016 normalized units (~8 points on the 0–100 scale) |
+| Robustness to lighting/contrast/noise/perspective/compression | Spread = 0.36 of the clinical signal — holds up |
+| Four-class (normal/mild/moderate/severe) accuracy | At chance — not usable |
+
+A pose gate rejects any photo where head yaw exceeds 3°, since a 12° turn was found to inflate the measurement nearly 5-fold on an otherwise straight nose — an artifact of projection, not anatomy.
+
+An unresolved limitation: a capture-geometry proxy (face width ÷ interocular distance) correlates with clinical grade almost as strongly as the measurement itself (ρ = 0.58), suggesting some of the signal may reflect how photos were taken rather than pure anatomy. This is flagged, not hidden, and is the reason a properly controlled follow-up dataset is the next real step.
+
+Full methodology, all fourteen tested approaches, and complete statistics are in the accompanying research paper (see `docs/`).
+
+---
+
+## How it works
 
 ```
-nosecheck/
+Photo upload → pose check (reject if >3° head turn)
+             → MediaPipe facial landmarks
+             → dorsal offset from midline
+             → 0–100 score, reported alongside a NOSE-style symptom score
+             → both shown separately, never blended into one number
+```
+
+The photo score and the symptom score are deliberately **not** combined into a single figure. A person can have real symptoms with a straight-looking nose (internal deviation without visible external crookedness) — a genuine, common presentation that a blended score would quietly average away. Both are shown side by side, with a plain-language note when they disagree.
+
+---
+
+## App structure
+
+- **Onboarding** — one-time intro, screening-not-diagnosis disclaimer
+- **Home** — start a screening, see your last result
+- **Photo Guide** — capture instructions, including the 3° pose limit
+- **Upload** — take/select a photo, get the photo-only score
+- **Questionnaire** — 8-question symptom checklist, one question at a time
+- **Result** — two independent scores (photo, symptoms), a score breakdown page explaining the real method and its real numbers, and a share code for a clinician
+- **History / Profile** — session-based (see Known Limitations)
+- **Clinician Portal** — look up a shared result by code and add notes; also a real (non-fabricated) list of recent results
+
+---
+
+## Known limitations
+
+- **No real accounts.** History and Profile are tied to an anonymous browser session cookie. Clearing cookies or switching devices loses access to past results.
+- **No clinician authentication.** Anyone with a share code can view and annotate that result. Fine for a first version; not secure for production use with real patient data.
+- **Ephemeral storage in production.** The current Render deployment uses SQLite on a non-persistent disk — data can be lost on redeploy. Not yet suitable for anything that needs to reliably persist.
+- **Small validation set.** All statistics above come from 35 photos. Confidence intervals are wide, and the measurement was developed and evaluated on the same set (mitigated by leave-one-out estimation, not eliminated by it).
+- **External measurement only.** This cannot and does not assess internal septal anatomy.
+
+---
+
+## Running locally
+
+```bash
+git clone https://github.com/sairamvottikonda-tech/NoseCheckAI.git
+cd NoseCheckAI
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python -m flask --app src.app run --port 5001
+```
+
+Open `http://localhost:5001`.
+
+### Project layout
+
+```
+NoseCheckAI/
 ├── src/
-│   ├── image_processing/      # Photo capture and preprocessing
-│   ├── landmark_detection/    # Facial landmark detection using MediaPipe
-│   ├── measurement/           # Nasal asymmetry calculations
-│   ├── scoring/              # Deviation score algorithm
-│   ├── questionnaire/        # Symptom checklist module
-│   ├── data_management/      # Data storage and retrieval
-│   └── analysis/             # Statistical analysis and visualization
-├── data/
-│   ├── calibration_models/   # Known deviations of 3D models
-│   ├── images/               # Captured photos
-│   └── results/              # Measurement data and scores
-├── models/                   # MediaPipe model files (face_landmarker.task)
-├── notebooks/                # Jupyter notebooks for analysis
-├── tests/                    # Unit tests
-├── docs/                     # Documentation and research notes
-└── scripts/                  # Utility scripts
+│   ├── app/__init__.py          # Flask routes
+│   ├── db.py                    # SQLite persistence (results, share codes, notes)
+│   ├── image_processing/        # Upload handling, preprocessing
+│   ├── landmark_detection/      # MediaPipe wrapper, stable multi-pass detector
+│   ├── measurement/             # dorsal_offset.py -- the validated measurement
+│   ├── scoring/                 # scorer.py -- pose gate + scoring
+│   └── questionnaire/           # Symptom checklist, scoring
+├── templates/                   # Jinja2 templates (onboarding, home, guide, upload,
+│                                 #   questionnaire, result, detail, history, profile,
+│                                 #   clinician, clinician_all)
+├── static/style.css
+└── docs/                        # Research paper, methodology notes
 ```
 
-## Installation
+---
 
-### Prerequisites
+## Research paper
 
-- Python 3.8+ (Python 3.9.6+ recommended)
-- pip (Python package manager)
+The full methodology — all fourteen tested measurements, the statistical protocol, the capture-geometry confound, and the honest limitations — is written up as a research paper intended for review with the collaborating surgeon and potential submission to a digital health or medical imaging venue. See `docs/` for the current draft.
 
-### Step-by-Step Setup
-
-1. **Clone or download this repository**
-   ```bash
-   git clone https://github.com/lakshman1213/nosecheck.git
-   cd nosecheck
-   ```
-
-2. **Create a virtual environment**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   
-   For full development (includes pandas, matplotlib, scikit-learn for analysis):
-   ```bash
-   pip install -r requirements.txt
-   ```
-   
-   For minimal web app only (production-like):
-   ```bash
-   pip install -r requirements-production.txt
-   ```
-
-4. **Download the MediaPipe Face Landmarker model**
-   
-   The model will auto-download on first run, but you can download it manually:
-   ```bash
-   mkdir -p models
-   curl -L -o models/face_landmarker.task \
-     "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-   ```
-
-## Running Locally
-
-After installation, start the Flask web server:
-
-**Option 1: Using the convenience script**
-```bash
-python run_server.py
-```
-
-**Option 2: Using Python module**
-```bash
-python -m src.app
-```
-
-**Option 3: Using Flask CLI**
-```bash
-python -m flask --app src.app run --host 0.0.0.0 --port 5001
-```
-
-The server will start on **http://localhost:5001**
-
-- Open your browser and navigate to `http://localhost:5001`
-- The web interface provides a mobile-friendly UI for photo upload, symptom questionnaire, and results display
-- Press `Ctrl+C` to stop the server
-
-### Development vs Production Dependencies
-
-- **`requirements.txt`**: Full development dependencies including pandas, matplotlib, scikit-learn, jupyter. Use this for local development, calibration scripts, and data analysis.
-- **`requirements-production.txt`**: Minimal dependencies for web app only. Use this for production deployments or if you only need the web interface.
-
-## Quick Start
-
-### Web Interface (Recommended)
-
-1. Start the server: `python run_server.py`
-2. Open `http://localhost:5001` in your browser
-3. Upload a frontal face photo
-4. Complete the symptom questionnaire
-5. View your screening result with deviation score and classification
-
-### Python API
-
-```python
-from src.landmark_detection.detector import detect_landmarks
-from src.measurement.asymmetry_calculator import calculate
-from src.scoring.score_calculator import calculate_score
-
-# Process an image
-image_path = "path/to/nose/photo.jpg"
-landmarks = detect_landmarks(image_path)
-if landmarks:
-    measurements = calculate(landmarks)
-    result = calculate_score(measurements)
-    print(f"Deviation Score: {result['deviation_score']}")
-    print(f"Classification: {result['classification']}")
-```
-
-## Key Metrics
-
-The system calculates the following nasal asymmetry metrics:
-
-1. **Lateral Deviation**: Distance from nose tip to facial midline
-2. **Septal Angle**: Angle of nasal septum from vertical
-3. **Nostril Asymmetry**: Left vs. right nostril size/shape differences
-4. **Bridge Alignment**: Straightness of nasal bridge
-
-## Technology Stack
-
-- **Computer Vision**: OpenCV, MediaPipe
-- **Data Processing**: NumPy, Pandas
-- **Statistical Analysis**: SciPy, scikit-learn
-- **Visualization**: Matplotlib, Seaborn
-- **Web Interface**: Flask
-- **Database**: SQLite (via SQLAlchemy)
-- **Development**: Jupyter, pytest, black
-
-## Development
-
-### Running Tests
-
-```bash
-pytest tests/
-```
-
-### Code Formatting
-
-```bash
-black src/
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Port 5000 already in use (macOS)**
-- macOS AirPlay Receiver uses port 5000 by default
-- NoseCheck uses port 5001 to avoid conflicts
-- If port 5001 is also in use, change it in `run_server.py` or `src/app/__main__.py`
-
-**Model download fails**
-- Check your internet connection
-- Download manually:
-  ```bash
-  mkdir -p models
-  curl -L -o models/face_landmarker.task \
-    "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-  ```
-
-**Import errors**
-- Ensure virtual environment is activated: `source venv/bin/activate`
-- Reinstall dependencies: `pip install -r requirements.txt`
-- Check Python version: `python3 --version` (should be 3.8+)
-
-**Face detection fails**
-- Ensure photo is frontal (face camera directly)
-- Check lighting (even, not too dark or overexposed)
-- Photo should show full face with nose clearly visible
-- Try a different photo with better quality
-
-**Module not found errors**
-- Make sure you're in the project root directory
-- Verify `src/` directory exists and contains all modules
-- Check that `__init__.py` files exist in each package directory
-
-## Research Validation
-
-This tool is designed for research purposes to:
-- Validate correlation between calculated scores and known deviations
-- Assess repeatability of measurements
-- Evaluate classification accuracy across severity categories
-- Serve as an educational tool for adolescent health awareness
-
-## Expected Outcomes
-
-- **Quantitative Validation**: High correlation (r²) between known and calculated deviations
-- **Repeatability**: Coefficient of variation < 10% for repeated measurements
-- **Classification Accuracy**: Reliable distinction between normal/mild/moderate/severe categories
-
-## Contributing
-
-This is a research project. For questions or collaboration inquiries, please contact the research team.
-
-## License
-
-[To be determined based on research institution requirements]
+---
 
 ## Disclaimer
 
-This tool is for research and educational purposes only. It is not intended for clinical diagnosis or medical decision-making. Always consult qualified healthcare professionals for medical advice.
+This is a screening aid for research and educational purposes only. It is not a clinical diagnosis and is not a substitute for examination by a qualified clinician. In validation, this tool missed approximately half of clinically severe cases — a low score does not rule out nasal septal deviation. If you have symptoms, see a doctor regardless of what this app shows.
 
-## Citation
+## Acknowledgements
 
-[To be added upon publication]
+Developed in collaboration with Dr. Alexander Markarian, M.D., Facial Plastic Surgery, USC, who provided clinical grading for the validation set.
