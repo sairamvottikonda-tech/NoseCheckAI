@@ -1,6 +1,6 @@
 # NoseCheckAI
 
-A screening aid that estimates external nasal asymmetry from a smartphone photo, paired with a symptom questionnaire. Built out of a real septoplasty case, developed with a board-certified facial plastic surgeon (Dr. Alexander Markarian, USC), and validated honestly rather than assumed to work.
+A screening aid that estimates external nasal asymmetry from a smartphone photo, paired with a symptom questionnaire. Built out of a real rhinoplasty case, developed with a board-certified facial plastic surgeon (Dr. Alexander Markarian, USC), and validated honestly rather than assumed to work.
 
 🔗 **Live app:** [nosecheckai-v2.onrender.com](https://nosecheckai-v2.onrender.com)
 
