@@ -19,6 +19,32 @@ os.chdir(_root)
 
 app = Flask(__name__, template_folder=str(_root / "templates"), static_folder=str(_root / "static"))
 
+import uuid as _uuid_mod
+from flask import session as _session
+from src.db import (
+    init_db as _init_db, ensure_patient as _ensure_patient,
+    save_photo_result as _save_photo_result,
+    update_result_symptoms as _update_result_symptoms,
+    get_history as _get_history, get_latest as _get_latest,
+    get_patient_stats as _get_patient_stats,
+    get_result_by_code as _get_result_by_code,
+    get_notes as _get_notes, add_note as _add_note,
+    set_display_name as _set_display_name,
+)
+
+app.secret_key = os.environ.get("NOSECHECK_SECRET_KEY", "dev-key-change-in-production")
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+_init_db()
+
+
+def ensure_session_id():
+    if "patient_id" not in _session:
+        _session["patient_id"] = _uuid_mod.uuid4().hex
+        _session.permanent = True
+        _ensure_patient(_session["patient_id"])
+    return _session["patient_id"]
+
+
 try:
     import config
     app.config["MAX_CONTENT_LENGTH"] = config.FLASK_CONFIG.get("max_content_length", 16 * 1024 * 1024)
@@ -150,7 +176,90 @@ def run_pipeline(image_path):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    pid = ensure_session_id()
+    if not _session.get("onboarded"):
+        return render_template("onboarding.html")
+    return redirect(url_for("home"))
+
+
+@app.route("/onboarding/start", methods=["POST"])
+def onboarding_start():
+    ensure_session_id()
+    _session["onboarded"] = True
+    return redirect(url_for("home"))
+
+
+@app.route("/home")
+def home():
+    pid = ensure_session_id()
+    if not _session.get("onboarded"):
+        return redirect(url_for("index"))
+    latest = _get_latest(pid)
+    return render_template("home.html", latest=latest)
+
+
+@app.route("/history")
+def history():
+    pid = ensure_session_id()
+    entries = _get_history(pid)
+    return render_template("history.html", entries=entries)
+
+
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    pid = ensure_session_id()
+    if request.method == "POST":
+        name = request.form.get("display_name", "").strip()
+        if name:
+            _set_display_name(pid, name)
+        return redirect(url_for("profile"))
+    stats = _get_patient_stats(pid)
+    return render_template("profile.html", stats=stats)
+
+
+@app.route("/detail")
+def detail():
+    return render_template("detail.html",
+        score=request.args.get("visual_score", type=float, default=None))
+
+
+@app.route("/clinician/all")
+def clinician_all():
+    from src.db import get_db as _get_db
+    with _get_db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM results WHERE status='measured' ORDER BY created_at DESC LIMIT 50"
+        ).fetchall()
+        recent = [dict(r) for r in rows]
+    return render_template("clinician_all.html", recent=recent)
+
+
+@app.route("/clinician", methods=["GET", "POST"])
+def clinician():
+    result = None
+    notes = []
+    error = None
+    code = request.values.get("code", "").strip()
+
+    if request.method == "POST" and request.form.get("action") == "add_note":
+        note_text = request.form.get("note", "").strip()
+        if code and note_text:
+            _add_note(code, note_text)
+        return redirect(url_for("clinician", code=code))
+
+    if code:
+        result = _get_result_by_code(code)
+        if result is None:
+            error = "No result found for that code. Check it and try again."
+        else:
+            notes = _get_notes(code)
+
+    return render_template("clinician.html", result=result, notes=notes, code=code, error=error)
+
+
+@app.route("/guide")
+def guide():
+    return render_template("guide.html")
 
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -200,7 +309,13 @@ def upload():
                 
                 if result.get('contour_detail'):
                     response['contour_detail'] = result['contour_detail']
-                
+
+                try:
+                    pid = ensure_session_id()
+                    response['share_code'] = _save_photo_result(pid, result)
+                except Exception:
+                    response['share_code'] = None
+
                 return jsonify(response)
         except Exception as e:
             import traceback
@@ -299,17 +414,26 @@ def questionnaire():
         visual_score = float(data.get("visual_score", 0))
         combined = combine_scores(visual_score, symptom_score)
         classification = _classify_score(combined)
+
+        share_code = data.get('share_code')
+        if share_code:
+            try:
+                _update_result_symptoms(share_code, symptom_score, combined, classification, responses)
+            except Exception:
+                pass
         return jsonify({
             "symptom_score": symptom_score,
             "visual_score": visual_score,
             "combined_score": combined,
             "classification": classification,
+            "share_code": share_code,
         })
     return render_template("questionnaire.html", questions=get_questions())
 
 
 @app.route("/result")
 def result():
+    share_code = request.args.get("share_code", "")
     score = request.args.get("score", type=float, default=0)
     classification = request.args.get("classification", "normal")
     visual_score = request.args.get("visual_score", type=float, default=None)
@@ -320,6 +444,7 @@ def result():
         classification=classification,
         visual_score=visual_score,
         symptom_score=symptom_score,
+        share_code=share_code,
     )
 
 

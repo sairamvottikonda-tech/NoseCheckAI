@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Home{% endblock %}
+{% block content %}
+{% if latest and latest.status == 'measured' %}
+{% set last_cls = latest.combined_classification or latest.classification or 'normal' %}
+<div class="last-screening">
+    Last screening:
+    <span class="last-screening-value severity-text-{{ last_cls }}">
+        {{ '%.1f'|format(latest.combined_score or latest.deviation_score or 0) }}
+        &middot;
+        {{ last_cls|capitalize }}
+    </span>
+</div>
+{% endif %}
+
+<div class="hero-card">
+    <div class="icon-badge">
+        <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+    </div>
+    <h2>Screen for Nasal Asymmetry</h2>
+    <p>A quick, smartphone-based screening using photo analysis and a symptom questionnaire.</p>
+    <a href="{{ url_for('guide') }}" class="btn primary" style="display:inline-block;margin-top:6px;">Start Screening</a>
+</div>
+
+<ul class="step-cards">
+    <li>
+        <span class="step-badge step-badge-blue">1</span>
+        <div><strong>Upload a Photo</strong>Frontal photo, nose clearly visible</div>
+    </li>
+    <li>
+        <span class="step-badge step-badge-purple">2</span>
+        <div><strong>Answer Questions</strong>Short breathing symptom checklist</div>
+    </li>
+    <li>
+        <span class="step-badge step-badge-green">3</span>
+        <div><strong>Get Your Result</strong>Deviation score with severity classification</div>
+    </li>
+</ul>
+{% endblock %}
+{% block scripts %}{% endblock %}

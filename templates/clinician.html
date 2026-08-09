@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Clinician Portal{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Clinician Portal</h2>
+    <p>Enter the share code your patient gave you to view their result and add a note.</p>
+
+    <form method="GET" style="display:flex;gap:10px;margin-bottom:var(--space-lg);">
+        <input type="text" name="code" value="{{ code or '' }}" placeholder="NCK-XXXX-XX"
+               style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px;font-family:monospace;text-transform:uppercase;">
+        <button type="submit" class="btn primary" style="padding:12px 22px;">Look up</button>
+    </form>
+
+    {% if error %}<div class="error-message visible">{{ error }}</div>{% endif %}
+
+    {% if result %}
+    <div style="border:1px solid var(--border-light);border-radius:14px;padding:18px;margin-bottom:var(--space-lg);">
+        <div style="font-size:12.5px;color:var(--text-light);margin-bottom:10px;">Code: {{ result.share_code }} &middot; {{ result.created_at[:10] }}</div>
+
+        {% if result.status != 'measured' %}
+        <div style="color:var(--text-muted);font-size:14px;">Photo could not be measured reliably ({{ result.status }}).</div>
+        {% else %}
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:28px;font-weight:700;color:var(--text);">{{ '%.1f'|format(result.deviation_score) }}</div>
+                <div style="font-size:12px;color:var(--text-light);">Photo measurement</div>
+            </div>
+            {% if result.symptom_score is not none %}
+            <div>
+                <div style="font-size:28px;font-weight:700;color:var(--text);">{{ '%.1f'|format(result.symptom_score) }}</div>
+                <div style="font-size:12px;color:var(--text-light);">Symptom score</div>
+            </div>
+            <div>
+                <div style="font-size:28px;font-weight:700;color:var(--text);">{{ '%.1f'|format(result.combined_score) }}</div>
+                <div style="font-size:12px;color:var(--text-light);">Combined ({{ result.combined_classification }})</div>
+            </div>
+            {% else %}
+            <div style="align-self:center;font-size:13px;color:var(--text-light);">Questionnaire not completed</div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <h3 style="font-size:14px;margin-bottom:10px;">Clinical notes</h3>
+    <div class="ios-list" style="margin-bottom:var(--space-md);">
+        {% for n in notes %}
+        <div class="ios-list-row" style="align-items:flex-start;">
+            <div style="flex:1;">
+                <div class="ios-list-title" style="white-space:normal;">{{ n.note }}</div>
+                <div class="ios-list-detail">{{ n.created_at[:16] }}</div>
+            </div>
+        </div>
+        {% else %}
+        <div style="padding:14px;font-size:13px;color:var(--text-light);">No notes yet.</div>
+        {% endfor %}
+    </div>
+
+    <form method="POST">
+        <input type="hidden" name="action" value="add_note">
+        <input type="hidden" name="code" value="{{ result.share_code }}">
+        <textarea name="note" placeholder="Add a note visible to anyone with this code..."
+                  style="width:100%;min-height:70px;border-radius:12px;border:1px solid var(--border);padding:12px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:10px;"></textarea>
+        <button type="submit" class="btn primary full-width">Add Note</button>
+    </form>
+    {% endif %}
+
+    <p style="font-size:11px;color:var(--text-light);line-height:1.5;margin-top:var(--space-lg);">
+        Anyone with a result's share code can view it and add notes here -- there is no clinician login yet.
+        Screening data only. Not a substitute for clinical evaluation.
+    </p>
+</div>
+{% endblock %}
+{% block scripts %}{% endblock %}

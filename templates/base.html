@@ -3,22 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#0f172a">
     <meta name="description" content="NoseCheck - Smartphone-based screening for nasal asymmetry and deviated septum">
     <title>{% block title %}NoseCheck{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    {% if request.endpoint != 'index' %}
+    <div class="mode-bar">
+        <div class="mode-pill">
+            <a href="{{ url_for('home') }}" class="mode-btn {{ 'active' if request.endpoint not in ['clinician'] else '' }}">Patient app</a>
+            <a href="{{ url_for('clinician') }}" class="mode-btn {{ 'active' if request.endpoint == 'clinician' else '' }}">Clinician portal</a>
+        </div>
+    </div>
+
     <header class="header">
         <div class="header-brand">
             <svg class="header-icon" viewBox="0 0 24 24">
                 <path d="M9 12l2 2 4-4"/>
                 <circle cx="12" cy="12" r="10"/>
             </svg>
-            <h1>NoseCheck</h1>
+            <h1>NoseCheckAI</h1>
         </div>
-        <p class="header-subtitle">Nasal Asymmetry Screening Tool</p>
+        {% if request.endpoint != 'clinician' %}
+        <nav class="tab-nav">
+            <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' else '' }}">Home</a>
+            <a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint == 'history' else '' }}">History</a>
+            <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">Profile</a>
+        </nav>
+        {% endif %}
     </header>
+    {% endif %}
 
     {% block progress %}{% endblock %}
 
@@ -30,7 +45,6 @@
         <p>For research and educational purposes only. Not a clinical diagnosis.</p>
     </footer>
 
-    <!-- Global loading overlay -->
     <div class="loading-overlay" id="loading-overlay">
         <div class="spinner"></div>
         <div class="loading-text">Analyzing...</div>

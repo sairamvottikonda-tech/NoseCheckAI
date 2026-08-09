@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Photo Guide{% endblock %}
+
+{% block progress %}
+<div class="step-progress">
+    <div class="step active"><span class="step-number">1</span><span class="step-label">Photo</span></div>
+    <div class="step-line"></div>
+    <div class="step"><span class="step-number">2</span><span class="step-label">Symptoms</span></div>
+    <div class="step-line"></div>
+    <div class="step"><span class="step-number">3</span><span class="step-label">Result</span></div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Photo Guide</h2>
+    <p>Take a frontal photo with good, even lighting and your nose clearly visible.</p>
+
+    <div class="ios-list guide-list">
+        <div class="ios-list-row">
+            <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            <div style="flex:1;">
+                <div class="ios-list-title">Face the camera directly</div>
+                <div class="ios-list-detail">Turns beyond 3&deg; can't be measured reliably</div>
+            </div>
+        </div>
+        <div class="ios-list-row">
+            <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            <div style="flex:1;">
+                <div class="ios-list-title">Use even, natural lighting</div>
+                <div class="ios-list-detail">Avoid strong side shadows</div>
+            </div>
+        </div>
+        <div class="ios-list-row">
+            <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            <div style="flex:1;">
+                <div class="ios-list-title">Keep a neutral expression</div>
+                <div class="ios-list-detail">Smiling can shift nostril symmetry</div>
+            </div>
+        </div>
+        <div class="ios-list-row">
+            <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            <div style="flex:1;">
+                <div class="ios-list-title">Hold the phone still, arm's length away</div>
+                <div class="ios-list-detail">Closer shots distort the measurement</div>
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ url_for('upload') }}" class="btn primary full-width" style="margin-top:var(--space-lg);">Open Camera</a>
+</div>
+{% endblock %}
+{% block scripts %}{% endblock %}

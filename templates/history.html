@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - History{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Screening History</h2>
+    {% if entries %}
+    <div class="ios-list">
+        {% for e in entries %}
+        <div class="ios-list-row">
+            <div class="ios-list-icon" style="background:
+                {%- if e.status != 'measured' -%} #f1f5f9
+                {%- elif (e.combined_classification or e.classification) == 'severe' -%} #fee2e2
+                {%- elif (e.combined_classification or e.classification) == 'moderate' -%} #ffedd5
+                {%- elif (e.combined_classification or e.classification) == 'mild' -%} #fef3c7
+                {%- else -%} #d1fae5{%- endif -%};">
+            </div>
+            <div style="flex:1;">
+                <div class="ios-list-title">{{ e.created_at[:10] }}</div>
+                <div class="ios-list-detail">
+                    {% if e.status != 'measured' %}
+                        Photo could not be measured
+                    {% else %}
+                        {{ '%.1f'|format(e.combined_score or e.deviation_score or 0) }} &middot;
+                        {{ (e.combined_classification or e.classification)|capitalize }}
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{{ url_for('clinician', code=e.share_code) }}" class="ios-list-code">{{ e.share_code }}</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No screenings yet. <a href="{{ url_for('upload') }}">Start your first screening</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}{% endblock %}

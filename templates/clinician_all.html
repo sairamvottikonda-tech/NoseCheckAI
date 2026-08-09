@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - All Shared Results{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>All Shared Results</h2>
+    <p>There is no clinician login yet, so this lists every result in the system by share code and date -- not by patient name, since no identity is attached. Anyone with this link can see this list.</p>
+
+    {% if recent %}
+    <div class="ios-list">
+        {% for r in recent %}
+        <a href="{{ url_for('clinician', code=r.share_code) }}" class="ios-list-row">
+            <div class="ios-list-icon" style="background:
+                {%- if (r.combined_classification or r.classification) == 'severe' -%} #fee2e2
+                {%- elif (r.combined_classification or r.classification) == 'moderate' -%} #ffedd5
+                {%- elif (r.combined_classification or r.classification) == 'mild' -%} #fef3c7
+                {%- else -%} #d1fae5{%- endif -%};">
+            </div>
+            <div style="flex:1;">
+                <div class="ios-list-title">{{ r.share_code }}</div>
+                <div class="ios-list-detail">{{ r.created_at[:10] }} &middot;
+                    {{ '%.1f'|format(r.combined_score or r.deviation_score or 0) }} &middot;
+                    {{ (r.combined_classification or r.classification)|capitalize }}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No results yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}{% endblock %}

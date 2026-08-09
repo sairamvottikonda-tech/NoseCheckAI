@@ -25,21 +25,6 @@
     <h2>Upload Your Photo</h2>
     <p>Take a frontal face photo with good, even lighting and your nose clearly visible.</p>
 
-    <div class="photo-guidelines">
-        <div class="guideline">
-            <div class="guideline-icon">&#128566;</div>
-            <span>Face camera directly</span>
-        </div>
-        <div class="guideline">
-            <div class="guideline-icon">&#128161;</div>
-            <span>Even lighting</span>
-        </div>
-        <div class="guideline">
-            <div class="guideline-icon">&#128247;</div>
-            <span>Keep still</span>
-        </div>
-    </div>
-
     <form id="upload-form" enctype="multipart/form-data">
         <div class="drop-zone" id="drop-zone">
             <svg class="drop-zone-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round">
@@ -67,7 +52,7 @@
     </button>
 
     <div id="next-step" style="display:none; margin-top: var(--space-md);">
-        <a href="#" id="questionnaire-link" class="btn primary full-width">
+        <a href="#" id="questionnaire-link" class="btn primary full-width" style="display:block; text-align:center;">
             Continue to Symptom Questionnaire
         </a>
     </div>
@@ -131,6 +116,12 @@
         if (this.files.length) handleFile(this.files[0]);
     });
 
+    dropZone.addEventListener('click', function(e) {
+        if (e.target !== photoInput) {
+            photoInput.click();
+        }
+    });
+
     ['dragenter', 'dragover'].forEach(function(evt) {
         dropZone.addEventListener(evt, function(e) {
             e.preventDefault();
@@ -189,7 +180,7 @@
                 angleWarning.style.display = 'block';
             }
 
-            questionnaireLink.href = '/questionnaire?visual_score=' + score + '&classification=' + cls;
+            questionnaireLink.href = '/questionnaire?visual_score=' + score + '&classification=' + cls + '&share_code=' + encodeURIComponent(data.share_code || '');
             nextStep.style.display = 'block';
             analyzeBtn.style.display = 'none';
         } catch (err) {

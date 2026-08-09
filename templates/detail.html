@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck - Score Breakdown{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>How this score is calculated</h2>
+    <p>Your visual score{% if score %} ({{ '%.1f'|format(score) }}){% endif %} comes from a single geometric measurement, not a blend of several.</p>
+
+    <div class="method-block">
+        <h3>Dorsal offset</h3>
+        <p>We draw a line from the midpoint of your inner eye corners to your philtrum -- this is the facial midline, independent of your nose shape. We then measure how far each of seven points along your nasal bridge sits from that line, and report the largest offset, normalized by the distance between your eyes.</p>
+    </div>
+
+    <div class="method-block">
+        <h3>Validation</h3>
+        <p>Tested against 35 clinician-graded photos: rank correlation with clinical grade rho = 0.61 (leave-one-out rho = 0.49). Correctly separates severe from non-severe cases 86% of the time, with 96% specificity and 56% sensitivity -- meaning it rarely flags someone incorrectly, but misses roughly half of clinically severe cases.</p>
+    </div>
+
+    <div class="method-block">
+        <h3>What it can't do</h3>
+        <p>This measures external nasal bridge position only. It cannot see internal septal cartilage or bone, which is what determines most clinical diagnoses and is normally assessed via CT scan or in-person exam. It also cannot reliably distinguish mild from moderate deviation -- in testing, four-level classification performed no better than chance.</p>
+    </div>
+
+    <a href="javascript:history.back()" class="btn secondary full-width">Back to Result</a>
+</div>
+{% endblock %}
+{% block scripts %}{% endblock %}

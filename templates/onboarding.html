@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}NoseCheck{% endblock %}
+{% block content %}
+<div class="onboarding">
+    <div class="icon-badge" style="width:72px;height:72px;border-radius:20px;">
+        <svg viewBox="0 0 24 24" style="width:34px;height:34px;"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+    </div>
+    <div class="onboarding-title">NoseCheckAI</div>
+    <p class="onboarding-body">A photo- and symptom-based screening for signs of nasal septum deviation, built for patients and the clinicians they share results with.</p>
+    <p class="onboarding-disclaimer">Screening only, not a diagnosis. Always consult a qualified clinician.</p>
+    <form method="POST" action="{{ url_for('onboarding_start') }}">
+        <button type="submit" class="btn primary" style="padding:15px 40px;">Get Started</button>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}{% endblock %}
