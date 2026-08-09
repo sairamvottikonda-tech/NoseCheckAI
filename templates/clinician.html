@@ -23,16 +23,12 @@
         <div style="display:flex;gap:24px;flex-wrap:wrap;">
             <div>
                 <div style="font-size:28px;font-weight:700;color:var(--text);">{{ '%.1f'|format(result.deviation_score) }}</div>
-                <div style="font-size:12px;color:var(--text-light);">Photo measurement</div>
+                <div style="font-size:12px;color:var(--text-light);">Photo measurement ({{ result.classification }})</div>
             </div>
             {% if result.symptom_score is not none %}
             <div>
                 <div style="font-size:28px;font-weight:700;color:var(--text);">{{ '%.1f'|format(result.symptom_score) }}</div>
-                <div style="font-size:12px;color:var(--text-light);">Symptom score</div>
-            </div>
-            <div>
-                <div style="font-size:28px;font-weight:700;color:var(--text);">{{ '%.1f'|format(result.combined_score) }}</div>
-                <div style="font-size:12px;color:var(--text-light);">Combined ({{ result.combined_classification }})</div>
+                <div style="font-size:12px;color:var(--text-light);">Symptom score ({{ result.combined_classification }})</div>
             </div>
             {% else %}
             <div style="align-self:center;font-size:13px;color:var(--text-light);">Questionnaire not completed</div>
