@@ -412,20 +412,20 @@ def questionnaire():
                 responses.append(0)
         symptom_score = compute_symptom_score(responses)
         visual_score = float(data.get("visual_score", 0))
-        combined = combine_scores(visual_score, symptom_score)
-        classification = _classify_score(combined)
+        visual_classification = data.get("classification", _classify_score(visual_score))
+        symptom_classification = _classify_score(symptom_score)
 
         share_code = data.get('share_code')
         if share_code:
             try:
-                _update_result_symptoms(share_code, symptom_score, combined, classification, responses)
+                _update_result_symptoms(share_code, symptom_score, None, symptom_classification, responses)
             except Exception:
                 pass
         return jsonify({
             "symptom_score": symptom_score,
+            "symptom_classification": symptom_classification,
             "visual_score": visual_score,
-            "combined_score": combined,
-            "classification": classification,
+            "visual_classification": visual_classification,
             "share_code": share_code,
         })
     return render_template("questionnaire.html", questions=get_questions())
@@ -434,16 +434,16 @@ def questionnaire():
 @app.route("/result")
 def result():
     share_code = request.args.get("share_code", "")
-    score = request.args.get("score", type=float, default=0)
-    classification = request.args.get("classification", "normal")
     visual_score = request.args.get("visual_score", type=float, default=None)
+    visual_classification = request.args.get("visual_classification", default="normal")
     symptom_score = request.args.get("symptom_score", type=float, default=None)
+    symptom_classification = request.args.get("symptom_classification", default="normal")
     return render_template(
         "result.html",
-        score=score,
-        classification=classification,
         visual_score=visual_score,
+        visual_classification=visual_classification,
         symptom_score=symptom_score,
+        symptom_classification=symptom_classification,
         share_code=share_code,
     )
 

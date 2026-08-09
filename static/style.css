@@ -235,3 +235,16 @@ footer { text-align: center; padding: var(--space-lg); font-size: 12px; color: v
 .severity-text-mild     { color: var(--color-mild); }
 .severity-text-moderate { color: var(--color-moderate); }
 .severity-text-severe   { color: var(--color-severe); }
+
+/* ===== Two-panel result (photo + symptom, no blended score) ===== */
+.result-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: var(--space-lg); }
+.result-panel { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 22px; text-align: center; }
+.panel-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-light); margin-bottom: 10px; }
+.panel-num { font-size: 30px; font-weight: 700; color: var(--text); }
+.panel-unit { font-size: 14px; font-weight: 500; color: var(--text-light); }
+.sev-bg-normal   { background: var(--color-normal-bg);   color: var(--color-normal); }
+.sev-bg-mild     { background: var(--color-mild-bg);     color: var(--color-mild); }
+.sev-bg-moderate { background: var(--color-moderate-bg); color: var(--color-moderate); }
+.sev-bg-severe   { background: var(--color-severe-bg);   color: var(--color-severe); }
+.panel-note { font-size: 11.5px; color: var(--text-light); line-height: 1.5; margin-top: 8px; }
+.interp-note { background: var(--primary-light); border-left: 4px solid var(--primary); border-radius: 10px; padding: 16px 20px; font-size: 13.5px; line-height: 1.6; color: var(--text); margin-bottom: var(--space-lg); }

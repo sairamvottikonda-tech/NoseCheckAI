@@ -12,53 +12,37 @@
 {% endblock %}
 
 {% block content %}
-{% set cls = classification|default('normal') %}
-{% set score_val = score|default(0)|float %}
+{% set vcls = visual_classification|default('normal') %}
+{% set scls = symptom_classification|default('normal') %}
+{% set vval = visual_score|default(0)|float %}
+{% set sval = symptom_score|default(0)|float %}
 
-<div class="hero-card severity-{{ cls }}">
-    <div class="gauge-wrap">
-        <svg viewBox="0 0 120 120" class="gauge-svg">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="8"/>
-            <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="8"
-                    stroke-linecap="round" stroke-dasharray="326.7"
-                    stroke-dashoffset="{{ 326.7 - (score_val / 100 * 326.7) }}"/>
-        </svg>
-        <div class="gauge-center">
-            <div class="gauge-score">{{ '%.1f'|format(score_val) }}</div>
-            <div class="gauge-outof">out of 100</div>
-        </div>
+<div class="result-pair">
+    <div class="result-panel severity-text-{{ vcls }}">
+        <div class="panel-label">Photo Measurement</div>
+        <div class="panel-num">{{ '%.1f'|format(vval) }}<span class="panel-unit">/100</span></div>
+        <span class="severity-badge sev-bg-{{ vcls }}">{{ vcls }}</span>
+        <p class="panel-note">Dorsal offset from the facial midline. Validated against 35 clinician-graded photos (rho = 0.49 on unseen photos).</p>
     </div>
-    <span class="severity-badge">{{ cls }}</span>
-</div>
-
-<div class="score-pair">
-    <div class="score-box">
-        <div class="score-box-num">{{ '%.1f'|format(visual_score|default(0)|float) }}</div>
-        <div class="score-box-label">Visual Score</div>
-    </div>
-    <div class="score-box">
-        <div class="score-box-num">{{ '%.1f'|format(symptom_score|default(0)|float) }}</div>
-        <div class="score-box-label">Symptom Score</div>
+    <div class="result-panel severity-text-{{ scls }}">
+        <div class="panel-label">Symptom Score</div>
+        <div class="panel-num">{{ '%.1f'|format(sval) }}<span class="panel-unit">/100</span></div>
+        <span class="severity-badge sev-bg-{{ scls }}">{{ scls }}</span>
+        <p class="panel-note">Based on your questionnaire answers. Reflects how you feel, not what the photo shows.</p>
     </div>
 </div>
 
-<div class="card severity-{{ cls }}">
-    {% if cls == 'normal' %}
-        <h2>No Significant Asymmetry Detected</h2>
-        <p>Your screening suggests no notable nasal asymmetry. If you occasionally experience mild symptoms, they may be due to other causes like allergies. Monitor your symptoms and consult an ENT if they persist.</p>
-    {% elif cls == 'mild' %}
-        <h2>Mild Asymmetry Detected</h2>
-        <p>Your result indicates mild nasal asymmetry. If you experience symptoms like occasional congestion or mouth breathing, consider visiting an ENT specialist for a clinical evaluation.</p>
-    {% elif cls == 'moderate' %}
-        <h2>Moderate Asymmetry Detected</h2>
-        <p>Your result indicates moderate asymmetry. We recommend consulting an ENT specialist, especially if you experience breathing difficulties, sleep issues, or frequent congestion.</p>
+{% if (vcls in ['moderate','severe']) != (scls in ['moderate','severe']) %}
+<div class="interp-note">
+    {% if scls in ['moderate','severe'] %}
+    Your symptoms are elevated, but the photo doesn't show marked external deviation. This combination is common: internal septal deviation can occur without a visibly crooked nose. Symptoms matter here even without a matching photo result.
     {% else %}
-        <h2>Notable Asymmetry Detected</h2>
-        <p>Your result suggests notable nasal asymmetry. We strongly recommend visiting an ENT specialist for a thorough evaluation. A deviated septum can significantly affect breathing, sleep quality, and daily comfort.</p>
+    The photo shows measurable deviation, but you report few symptoms. External shape and breathing function aren't the same thing -- a crooked nose without symptoms may not need treatment.
     {% endif %}
 </div>
+{% endif %}
 
-<a href="{{ url_for('detail', visual_score=visual_score) }}" class="detail-link">View full score breakdown &rarr;</a>
+<a href="{{ url_for('detail', visual_score=vval) }}" class="detail-link">View full score breakdown &rarr;</a>
 
 <p class="fine-disclaimer">This is a screening tool for research and educational purposes only. It is not a clinical diagnosis. Always consult qualified healthcare professionals.</p>
 

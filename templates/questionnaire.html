@@ -49,6 +49,7 @@
 
     var urlParams = new URLSearchParams(window.location.search);
     var visualScore = urlParams.get('visual_score') || 0;
+    var visualClassification = urlParams.get('classification') || 'normal';
     var shareCode = urlParams.get('share_code') || '';
 
     function show(i) {
@@ -89,7 +90,7 @@
         loadingOverlay.querySelector('.loading-text').textContent = 'Calculating your result...';
         loadingOverlay.classList.add('visible');
 
-        var payload = { visual_score: visualScore, share_code: shareCode };
+        var payload = { visual_score: visualScore, classification: visualClassification, share_code: shareCode };
         for (var i = 0; i < total; i++) {
             payload['symptom_' + i] = answers[i];
         }
@@ -102,10 +103,10 @@
             });
             var result = await res.json();
             var params = new URLSearchParams({
-                score: result.combined_score,
-                classification: result.classification || 'normal',
                 visual_score: result.visual_score || 0,
+                visual_classification: result.visual_classification || 'normal',
                 symptom_score: result.symptom_score || 0,
+                symptom_classification: result.symptom_classification || 'normal',
                 share_code: result.share_code || ''
             });
             window.location.href = '/result?' + params.toString();
