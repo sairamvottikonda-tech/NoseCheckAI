@@ -481,7 +481,9 @@ def debug_measurements():
         if image is None:
             return _j.dumps({"error": "failed"}), 400
         processed = preprocess(image)
-        landmarks, _confidence = detect_landmarks_stable(processed) or detect_landmarks(image)
+        landmarks, _confidence = detect_landmarks_stable(processed)
+        if landmarks is None:
+            landmarks, _confidence = detect_landmarks_stable(image)
         if landmarks is None:
             return _j.dumps({"error": "no face"}), 400
         tilt = detect_camera_tilt(landmarks)
