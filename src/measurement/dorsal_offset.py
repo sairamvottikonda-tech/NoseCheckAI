@@ -121,30 +121,3 @@ def compute_dorsal_offset(face_landmarks, image_width, image_height):
         "interocular_px": round(float(interocular), 1),
     }
 
-
-def interpret(max_offset: float) -> dict:
-    """
-    Maps offset to a defensible verbal band.
-
-    Deliberately coarse. Four-class classification on this measurement was
-    at chance (25% LOO); only the severe group separated. Reporting mild vs
-    moderate here would claim precision the data does not support.
-    """
-    midpoint = (SEVERE_MEDIAN + NONSEVERE_MEDIAN) / 2.0
-
-    if max_offset >= SEVERE_MEDIAN:
-        band = "marked external deviation"
-    elif max_offset >= midpoint:
-        band = "possible external deviation"
-    else:
-        band = "no marked external deviation"
-
-    near_boundary = (abs(max_offset - midpoint) < 2 * MEASUREMENT_SD
-                     or abs(max_offset - SEVERE_MEDIAN) < 2 * MEASUREMENT_SD)
-
-    return {
-        "band": band,
-        "near_boundary": near_boundary,
-        "note": ("This result sits close to a threshold and should be "
-                 "treated as inconclusive." if near_boundary else ""),
-    }

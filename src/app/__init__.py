@@ -109,11 +109,6 @@ def run_pipeline(image_path):
         landmarks, _confidence = detect_landmarks_stable(fallback)
 
     if landmarks is not None:
-        _BAND_COMPAT = {
-            'marked external deviation':    ('moderate', 55.0),
-            'borderline':                   ('mild',     35.0),
-            'no marked external deviation': ('normal',   12.0),
-        }
         result = None
         try:
             _rgb = _cv2.cvtColor(processed, _cv2.COLOR_BGR2RGB)
