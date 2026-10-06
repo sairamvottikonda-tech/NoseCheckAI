@@ -123,6 +123,18 @@ def run_pipeline(image_path):
                 if _r.get('status') == 'measured':
                     _r['classification'] = _r['descriptor']
                     _r['analysis_method'] = 'dorsal_offset'
+                    # Display-only overlay. Isolated on purpose: a failure
+                    # here must never knock a good measurement into the
+                    # legacy-scorer fallback below.
+                    try:
+                        from src.measurement.overlay import build_overlay
+                        _r['overlay'] = build_overlay(
+                            _r.pop('overlay_px'),
+                            image.shape[1], image.shape[0],
+                            _r.get('max_at_landmark'))
+                    except Exception:
+                        _r.pop('overlay_px', None)
+                        _r['overlay'] = None
                     result = _r
                 elif _r.get('status') == 'rejected':
                     _r['classification'] = 'inconclusive'
@@ -290,6 +302,7 @@ def upload():
                     "status": result.get("status", "measured"),
                     "disclaimer": result.get("disclaimer"),
                     "retake_message": result.get("message"),
+                    "overlay": result.get("overlay"),
                     "metrics": result.get("raw_metrics", {}),
                     "analysis_method": result.get("analysis_method", "landmark"),
                     "debug_method": result.get("method", "MISSING"),
@@ -353,6 +366,7 @@ def analyze():
             "status": result.get("status", "measured"),
             "disclaimer": result.get("disclaimer"),
             "retake_message": result.get("message"),
+            "overlay": result.get("overlay"),
             "metrics": result.get("raw_metrics", {}),
             "analysis_method": result.get("analysis_method", "landmark"),
                     "debug_method": result.get("method", "MISSING"),

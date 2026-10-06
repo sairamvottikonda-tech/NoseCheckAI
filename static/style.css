@@ -248,3 +248,17 @@ footer { text-align: center; padding: var(--space-lg); font-size: 12px; color: v
 .sev-bg-severe   { background: var(--color-severe-bg);   color: var(--color-severe); }
 .panel-note { font-size: 11.5px; color: var(--text-light); line-height: 1.5; margin-top: 8px; }
 .interp-note { background: var(--primary-light); border-left: 4px solid var(--primary); border-radius: 10px; padding: 16px 20px; font-size: 13.5px; line-height: 1.6; color: var(--text); margin-bottom: var(--space-lg); }
+
+/* Measurement overlay: drawn over the user's own photo in the browser. Display only. */
+.photo-preview { position: relative; }
+.photo-preview canvas.overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border-radius: var(--radius-md); }
+.overlay-tools { max-width: 340px; margin: 0 auto var(--space-md); font-size: 13px; color: var(--text-muted); }
+.overlay-legend { list-style: none; margin: 0 0 10px; padding: 0; }
+.overlay-legend li { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px; line-height: 1.4; }
+.overlay-swatch { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; }
+.overlay-swatch.line { width: 14px; height: 3px; border-radius: 2px; margin-top: 7px; background: #22d3ee; }
+.overlay-swatch.dots { background: #facc15; }
+.overlay-swatch.max { background: #e11d48; }
+.overlay-buttons { display: flex; gap: 8px; margin-bottom: 8px; }
+.overlay-buttons .btn { flex: 1; padding: 9px 10px; font-size: 13px; border-radius: var(--radius-sm); }
+.overlay-note { margin: 0; line-height: 1.45; }

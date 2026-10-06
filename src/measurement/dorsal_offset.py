@@ -119,5 +119,13 @@ def compute_dorsal_offset(face_landmarks, image_width, image_height):
         "profile": profile,
         "uncertainty": MEASUREMENT_SD,
         "interocular_px": round(float(interocular), 1),
+        # Exact points the measurement used, in the pixel space of the image
+        # that was passed in. Display only: nothing here feeds the score.
+        "points_px": {
+            "canthal_mid": [float(canthal_mid[0]), float(canthal_mid[1])],
+            "philtrum": [float(philtrum[0]), float(philtrum[1])],
+            "dorsum": {int(i): [float(px(i)[0]), float(px(i)[1])]
+                       for i in DORSUM_IDXS},
+        },
     }
 

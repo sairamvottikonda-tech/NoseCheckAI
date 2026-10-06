@@ -80,6 +80,35 @@ def preprocess(image: np.ndarray) -> np.ndarray:
     return processed
 
 
+def letterbox_geometry(w: int, h: int, target_w: int = None, target_h: int = None) -> dict:
+    """
+    Where an original (w x h) image lands inside the preprocessed canvas.
+
+    Mirrors the resize/pad arithmetic in preprocess() exactly, so landmark
+    coordinates measured on the preprocessed image can be mapped back onto
+    the original photo (needed to draw the measurement overlay). If you
+    change the arithmetic in preprocess(), change it here too;
+    tests/test_overlay.py checks the two agree.
+
+    Returns:
+        dict with new_w, new_h (size of the image region) and left, top
+        (offset of that region inside the canvas).
+    """
+    tw = target_w or TARGET_WIDTH
+    th = target_h or TARGET_HEIGHT
+    if (w, h) == (tw, th):
+        return {"new_w": w, "new_h": h, "left": 0, "top": 0}
+    scale = min(tw / w, th / h)
+    new_w = max(1, round(w * scale))
+    new_h = max(1, round(h * scale))
+    return {
+        "new_w": new_w,
+        "new_h": new_h,
+        "left": (tw - new_w) // 2,
+        "top": (th - new_h) // 2,
+    }
+
+
 def _normalize_lighting(image: np.ndarray) -> np.ndarray:
     """
     Apply CLAHE (Contrast Limited Adaptive Histogram Equalization) for lighting normalization.

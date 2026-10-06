@@ -109,6 +109,8 @@ def score_photo(face_landmarks, transformation_matrix,
         "offset": offset,
         "descriptor": _descriptor(score),
         "direction": m["direction"],
+        "max_at_landmark": m["max_at_landmark"],
+        "overlay_px": m["points_px"],
         "yaw": pose["yaw"],
         "disclaimer": (
             "Screening aid, not a diagnosis. Measures the external position of "
