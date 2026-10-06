@@ -2,22 +2,35 @@
 Dorsal offset from the intercanthal->philtrum midline.
 
 This is the only measurement in this project that has survived a full set
-of controls. Validation on n=24 clinically graded photos:
+of controls. Current validation, n=35 surgeon-graded photographs (full
+detail in docs/RESEARCH_PAPER.md, Section 5 and in src/scoring/scorer.py):
 
-    offset vs grade                      rho = +0.526   p = 0.0083
+    offset vs grade                      rho = +0.609   p = 0.0001
+    leave-one-out (unseen photographs)   rho = +0.486   p = 0.003
+    severe vs not-severe at 0.0150       86% (30/35)
+                                         sensitivity 56% (5/9)
+                                         specificity 96% (25/26)
+
+    within-person noise floor (5 repeat photos):  SD = 0.00158
+    between-grade SD:                                  0.00651
+    signal-to-noise:                                   4.1
+
+Earlier robustness checks, run on the first 24 photographs only and NOT yet
+repeated at n=35 (provisional):
+
+    offset vs grade (n=24)               rho = +0.526   p = 0.0083
     with strongest outlier removed       rho = +0.477   p = 0.0215
     permutation test (10,000 shuffles)                  p = 0.0101
     partial correlation, controlling yaw rho = +0.491   p = 0.0148
     restricted to |yaw| <= 2 deg (n=21)  rho = +0.491   p = 0.0237
 
-    within-person noise floor (5 repeat photos):  SD = 0.00158
-    between-grade SD:                                  0.00651
-    signal-to-noise:                                   4.13
-
-Ten other measurements tested on the same data returned p > 0.5, including
-lateral deviation from the face-edge midline, dorsal offset from
-glabella-menton, tip angle, drift slope, sidewall (BTAL) symmetry, shadow
-intensity asymmetry, pixel mirror difference, and HOG silhouette features.
+Thirteen other candidate measurements were evaluated on the same photos and
+none was retained: each showed no association (for example lateral
+deviation from the face-edge midline, dorsal offset from glabella-menton,
+drift slope, sidewall symmetry, shadow-intensity asymmetry, pixel mirror
+difference, HOG silhouette features), was redundant with dorsal offset
+(spline curvature, arc-length excess), or tracked head yaw (nasal axis
+angle). See the paper, Section 5.1.
 
 MIDLINE:
   Point A = midpoint of the inner eye corners (landmarks 133, 362)
@@ -27,25 +40,27 @@ cannot drag the reference line toward itself.
 
 WHAT IT MEASURES:
 Maximum perpendicular distance of any dorsum sample point from that line,
-normalized by interocular distance. Per-grade medians observed:
+normalized by interocular distance. Per-grade medians observed (n=35):
 
-    normal    0.0067      moderate  0.0063
+    normal    0.0042      moderate  0.0068
     mild      0.0097      severe    0.0150
 
 SCOPE -- IMPORTANT:
 This is a monotonic ranking relationship, not a four-class classifier.
-Four-class leave-one-out accuracy was 25%, at chance. Normal, mild and
-moderate overlap heavily; severe separates. Treat the output as
-"more deviated / less deviated," and at most as severe vs not-severe.
+Best four-class leave-one-out accuracy was 26% against a 31% majority-class
+baseline, i.e. no better than chance. Normal, mild and moderate overlap
+heavily; severe separates. Treat the output as "more deviated / less
+deviated," and at most as severe vs not-severe.
 
 It measures EXTERNAL dorsal position only. Internal septal deviation is
 graded on CT via the Elahi angle using intracranial landmarks and cannot
 be obtained from a photograph.
 
 POSE SENSITIVITY:
-The measurement correlates with head yaw (rho = +0.577). The grade
-correlation survives controlling for yaw, but photos should still pass the
-pose gate before this is trusted.
+The measurement is sensitive to head yaw (an earlier n=24 analysis reported
+a correlation; it has not been re-checked at n=35). The grade correlation
+survived controlling for yaw, but photos should still pass the pose gate
+before this is trusted.
 """
 
 import numpy as np

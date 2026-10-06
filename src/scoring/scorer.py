@@ -17,20 +17,31 @@ SCORE MAPPING
   to measured deviation -- doubling the offset doubles the score. Observed
   scores on the graded set spanned 8.1 to 100.
 
-VALIDATION (n=35 clinically graded photos)
-  rank correlation with clinical grade   rho = +0.609   p = 0.0001
+VALIDATION (n=35 surgeon-graded photographs; full detail in
+docs/RESEARCH_PAPER.md, Section 5)
+  rank correlation with clinical grade   rho = +0.609   p = 0.0001  (all 35)
+  leave-one-out (unseen photographs)     rho = +0.486   p = 0.003
   severe vs not-severe at score 75       86% (30/35)
-  sensitivity 56%, specificity 96%
-  with a 3 deg pose gate: specificity 100%
-
-  survives outlier removal               rho = +0.477   p = 0.0215
-  permutation test, 10k shuffles                        p = 0.0101
-  partial correlation controlling yaw    rho = +0.491   p = 0.0148
+  sensitivity 56% (5/9), specificity 96% (25/26)
+  3 deg pose gate (used by the app)      n = 31   rho = +0.566
+                                         sensitivity 50%, specificity 96%
+  2 deg pose gate                        n = 28   rho = +0.566
+                                         sensitivity 50%, specificity 100%
   within-person noise floor (5 repeats)  SD = 0.00158  (~8 score points)
-  image augmentation spread / signal     0.36 (robust to lighting,
-                                         contrast, noise, perspective, JPEG)
+  image perturbation spread / signal     0.36 with all conditions combined
+                                         (brightness, contrast, lighting,
+                                         sensor noise, perspective, JPEG);
+                                         rank order preserved in every case
 
-  Ten other measurements tested on the same photos returned p > 0.5.
+  Robustness checks run on the first 24 photographs only. NOT yet repeated
+  at n=35, so treat them as provisional:
+    outlier removed                      rho = +0.477   p = 0.0215
+    permutation test, 10k shuffles                      p = 0.0101
+    partial correlation controlling yaw rho = +0.491   p = 0.0148
+
+  Thirteen other candidate measurements were evaluated on the same photos.
+  None was retained: each showed no association, was redundant with dorsal
+  offset, or was confounded with head yaw (paper, Section 5.1).
 
 HONEST LIMITS
   - The SCORE is continuous and reflects real measured geometry.
